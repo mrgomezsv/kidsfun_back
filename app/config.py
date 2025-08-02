@@ -7,10 +7,10 @@ load_dotenv()
 
 class Settings(BaseSettings):
     # Database
-    database_url: str = os.getenv("DATABASE_URL", "postgresql://mrgomez:Karin2100@82.165.210.146:5432/smap_kf")
+    database_url: str = os.getenv("DATABASE_URL", "")
     
     # Security
-    secret_key: str = os.getenv("SECRET_KEY", "your-secret-key-change-this-in-production")
+    secret_key: str = os.getenv("SECRET_KEY", "")
     algorithm: str = os.getenv("ALGORITHM", "HS256")
     access_token_expire_minutes: int = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "30"))
     
@@ -31,12 +31,12 @@ class Settings(BaseSettings):
     max_file_size: int = int(os.getenv("MAX_FILE_SIZE", "10485760"))  # 10MB
     
     # Email
-    smtp_host: str = os.getenv("SMTP_HOST", "smtp.gmail.com")
+    smtp_host: str = os.getenv("SMTP_HOST", "")
     smtp_port: int = int(os.getenv("SMTP_PORT", "587"))
-    smtp_user: str = os.getenv("SMTP_USER", "kidsfun.developer@gmail.com")
-    smtp_password: str = os.getenv("SMTP_PASSWORD", "Karin2100")
+    smtp_user: str = os.getenv("SMTP_USER", "")
+    smtp_password: str = os.getenv("SMTP_PASSWORD", "")
     
-    # Production Settings (optional)
+    # Production Settings
     workers: int = int(os.getenv("WORKERS", "4"))
     worker_class: str = os.getenv("WORKER_CLASS", "uvicorn.workers.UvicornWorker")
     timeout: int = int(os.getenv("TIMEOUT", "30"))

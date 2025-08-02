@@ -56,8 +56,7 @@ sudo apt install -y git
 # Nginx (opcional, para proxy reverso)
 sudo apt install -y nginx
 
-# Supervisor (para gestión de procesos)
-sudo apt install -y supervisor
+# Systemd ya está incluido en Ubuntu por defecto
 
 # Logrotate (para rotación de logs)
 sudo apt install -y logrotate
@@ -145,23 +144,13 @@ EOF
 
 print_success "Logrotate configurado"
 
-# Configurar supervisor
-print_status "Configurando supervisor..."
-sudo tee /etc/supervisor/conf.d/kidsfun-backend.conf << 'EOF'
-[program:kidsfun-backend]
-command=/opt/kidsfun-backend/venv/bin/gunicorn -c /opt/kidsfun-backend/gunicorn.conf.py main:app
-directory=/opt/kidsfun-backend
-user=kidsfun
-autostart=true
-autorestart=true
-redirect_stderr=true
-stdout_logfile=/opt/kidsfun-backend/logs/supervisor.log
-EOF
+# Configurar systemd service
+print_status "Configurando systemd service..."
+sudo cp kidsfun-backend.service /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable kidsfun-backend
 
-sudo systemctl enable supervisor
-sudo systemctl restart supervisor
-
-print_success "Supervisor configurado"
+print_success "Systemd service configurado"
 
 print_success "🎉 Servidor Ubuntu preparado exitosamente!"
 echo ""
@@ -173,6 +162,6 @@ echo "4. Ejecutar ./deploy.sh"
 echo ""
 echo "🔧 Comandos útiles:"
 echo "   • Ver logs: sudo tail -f /opt/kidsfun-backend/logs/error.log"
-echo "   • Reiniciar servicio: sudo supervisorctl restart kidsfun-backend"
-echo "   • Ver estado: sudo supervisorctl status kidsfun-backend"
-echo "   • Ver logs de supervisor: sudo tail -f /opt/kidsfun-backend/logs/supervisor.log" 
+echo "   • Reiniciar servicio: sudo systemctl restart kidsfun-backend"
+echo "   • Ver estado: sudo systemctl status kidsfun-backend"
+echo "   • Ver logs: sudo journalctl -u kidsfun-backend -f" 

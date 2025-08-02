@@ -63,15 +63,15 @@ fi
 print_success "Dependencias básicas verificadas"
 
 # Crear entorno virtual si no existe
-if [ ! -d "venv" ]; then
+if [ ! -d ".env" ]; then
     print_status "Creando entorno virtual..."
-    python3 -m venv venv
+    python3 -m venv .env
     print_success "Entorno virtual creado"
 fi
 
 # Activar entorno virtual
 print_status "Activando entorno virtual..."
-source venv/bin/activate
+source .env/bin/activate
 
 # Actualizar pip
 print_status "Actualizando pip..."
@@ -180,7 +180,7 @@ cat > start_service.sh << 'EOF'
 cd "$(dirname "$0")"
 
 # Activar entorno virtual
-source venv/bin/activate
+    source .env/bin/activate
 
 # Verificar si el servicio ya está corriendo
 if [ -f "logs/gunicorn.pid" ]; then
@@ -318,7 +318,7 @@ print_success "🎉 Despliegue completado exitosamente!"
 echo ""
 echo "📋 Información del despliegue:"
 echo "   • Directorio de trabajo: $(pwd)"
-echo "   • Entorno virtual: $(pwd)/venv"
+echo "   • Entorno virtual: $(pwd)/.env"
 echo "   • Logs: $(pwd)/logs/"
 echo "   • Archivos: $(pwd)/media/"
 echo ""

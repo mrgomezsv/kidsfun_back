@@ -2,282 +2,172 @@
 
 Backend API para el sistema de gestión de KidsFun construido con FastAPI.
 
-## 🚀 Características
+## 🚀 Despliegue en Producción (Ubuntu Server)
 
-- **FastAPI**: Framework web moderno y rápido para Python
-- **SQLAlchemy**: ORM para manejo de base de datos
-- **PostgreSQL**: Base de datos principal
-- **JWT**: Autenticación con tokens JWT
-- **Pydantic**: Validación de datos y serialización
-- **CORS**: Soporte para Cross-Origin Resource Sharing
-- **File Upload**: Subida de archivos e imágenes
+### Requisitos Previos
 
-## 📋 Requisitos
-
+- Ubuntu Server 20.04 o superior
 - Python 3.8+
 - PostgreSQL
-- pip
+- Nginx (opcional, para proxy reverso)
 
-## 🛠️ Instalación
+### Instalación Automática (Recomendado)
 
 1. **Clonar el repositorio**
 ```bash
+git clone <repository-url>
 cd kidsfun_back
 ```
 
-2. **Crear entorno virtual**
+2. **Configurar variables de entorno**
 ```bash
-python -m venv venv
-source venv/bin/activate  # En Windows: venv\Scripts\activate
+cp env.example .env
+nano .env
 ```
 
-3. **Instalar dependencias**
+**Configuraciones importantes en `.env`:**
+- `DATABASE_URL`: URL de conexión a PostgreSQL
+- `SECRET_KEY`: Clave secreta para JWT (generar una segura)
+- `SMTP_USER` y `SMTP_PASSWORD`: Credenciales de email
+
+3. **Ejecutar script de despliegue**
 ```bash
+chmod +x deploy_ubuntu.sh
+sudo ./deploy_ubuntu.sh
+```
+
+El script automáticamente:
+- ✅ Instala dependencias del sistema
+- ✅ Crea entorno virtual `.env`
+- ✅ Instala dependencias de Python
+- ✅ Verifica conexión a base de datos
+- ✅ Ejecuta migraciones
+- ✅ Configura Gunicorn
+- ✅ Crea servicio systemd
+- ✅ Inicia el servicio
+
+### Instalación Manual
+
+Si prefieres instalar manualmente:
+
+1. **Configurar servidor**
+```bash
+chmod +x setup_server.sh
+sudo ./setup_server.sh
+```
+
+2. **Configurar aplicación**
+```bash
+cp env.example .env
+nano .env  # Editar configuraciones
+```
+
+3. **Crear entorno virtual**
+```bash
+python3 -m venv .env
+source .env/bin/activate
 pip install -r requirements.txt
 ```
 
-4. **Configurar variables de entorno**
+4. **Verificar base de datos**
 ```bash
-cp env.example .env
-# Editar .env con tus configuraciones
+source .env/bin/activate
+alembic upgrade head
 ```
 
-5. **Configurar base de datos**
+5. **Ejecutar con Gunicorn**
 ```bash
-# Asegúrate de que PostgreSQL esté corriendo
-# Las tablas se crearán automáticamente al ejecutar la aplicación
+source .env/bin/activate
+gunicorn main:app -w 4 -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000
 ```
 
-## 🚀 Ejecutar
+### Gestión del Servicio
 
 ```bash
-# Desarrollo
-uvicorn main:app --reload
+# Verificar estado
+sudo systemctl status kidsfun-backend
 
-# Producción
-uvicorn main:app --host 0.0.0.0 --port 8000
+# Iniciar servicio
+sudo systemctl start kidsfun-backend
+
+# Parar servicio
+sudo systemctl stop kidsfun-backend
+
+# Reiniciar servicio
+sudo systemctl restart kidsfun-backend
+
+# Habilitar inicio automático
+sudo systemctl enable kidsfun-backend
+
+# Ver logs
+sudo journalctl -u kidsfun-backend -f
 ```
 
-## 📚 Documentación API
+### Configuración de Nginx (Opcional)
 
-Una vez ejecutada la aplicación, puedes acceder a:
+Para usar Nginx como proxy reverso:
 
-- **Swagger UI**: http://localhost:8000/docs
-- **ReDoc**: http://localhost:8000/redoc
+```nginx
+server {
+    listen 80;
+    server_name your-domain.com;
 
-## 🔧 Endpoints Principales
+    location / {
+        proxy_pass http://127.0.0.1:8000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
 
-### Autenticación
-- `POST /api/auth/login` - Iniciar sesión
-- `POST /api/auth/register` - Registrarse
-- `GET /api/auth/me` - Obtener usuario actual
+    location /media/ {
+        alias /opt/kidsfun-backend/media/;
+    }
+}
+```
 
-### Productos
-- `GET /api/products/` - Listar productos
-- `GET /api/products/{id}` - Obtener producto
-- `POST /api/products/` - Crear producto
-- `PUT /api/products/{id}` - Actualizar producto
-- `DELETE /api/products/{id}` - Eliminar producto
-- `POST /api/products/{id}/upload-image` - Subir imagen
-
-### Likes
-- `GET /api/likes/` - Listar likes
-- `POST /api/likes/` - Crear/actualizar like
-- `DELETE /api/likes/{id}` - Eliminar like
-
-### Comentarios
-- `GET /api/commentaries/` - Listar comentarios
-- `POST /api/commentaries/` - Crear comentario
-- `DELETE /api/commentaries/{id}` - Eliminar comentario
-
-### Eventos
-- `GET /api/events/` - Listar eventos
-- `GET /api/events/{id}` - Obtener evento
-- `POST /api/events/` - Crear evento
-- `PUT /api/events/{id}` - Actualizar evento
-- `DELETE /api/events/{id}` - Eliminar evento
-
-### Waivers (NUEVO)
-- `POST /api/waiver/` - Crear waiver con QR
-- `POST /api/waiver/validate` - Validar waiver por QR
-- `GET /api/waiver/{qr_code}` - Obtener datos del waiver
-- `GET /api/waiver/user/{user_id}` - Obtener waivers del usuario
-- `POST /api/waiver/admin/validator` - Crear validador (admin)
-
-### Chat (NUEVO)
-- `GET /api/chat/rooms` - Obtener salas de chat
-- `POST /api/chat/rooms` - Crear sala de chat
-- `GET /api/chat/rooms/{room_id}/messages` - Obtener mensajes
-- `POST /api/chat/rooms/{room_id}/messages` - Enviar mensaje
-- `POST /api/chat/admin/administrators` - Crear administrador
-- `GET /api/chat/admin/administrators` - Listar administradores
-- `PUT /api/chat/admin/administrators/{admin_id}/toggle` - Activar/desactivar admin
-- `WS /api/chat/ws/{chat_id}` - WebSocket para chat en tiempo real
-
-## 🗄️ Base de Datos
-
-El backend se conecta a la base de datos PostgreSQL existente del proyecto Django. Los modelos están mapeados a las tablas existentes:
-
-- `auth_user` - Usuarios
-- `t_app_product` - Productos
-- `t_app_like` - Likes
-- `t_app_commentary` - Comentarios
-- `t_app_event` - Eventos
-- `t_app_chat_*` - Chat y mensajes
-- `t_app_product_waiver*` - Datos de waiver
-
-## 🔐 Autenticación
-
-La API usa JWT (JSON Web Tokens) para autenticación:
-
-1. **Login**: `POST /api/auth/login` con username y password
-2. **Token**: Se recibe un access_token
-3. **Autorización**: Incluir `Authorization: Bearer <token>` en headers
-
-## 📁 Estructura del Proyecto
+### Estructura del Proyecto
 
 ```
 kidsfun_back/
 ├── app/
-│   ├── __init__.py
 │   ├── config.py          # Configuración
 │   ├── database.py        # Configuración de BD
 │   ├── models/            # Modelos SQLAlchemy
 │   ├── schemas/           # Esquemas Pydantic
 │   └── routers/           # Endpoints de la API
+├── alembic/               # Migraciones de BD
 ├── main.py               # Aplicación principal
 ├── requirements.txt      # Dependencias
 ├── env.example          # Variables de entorno
+├── deploy_ubuntu.sh     # Script de despliegue
+├── setup_server.sh      # Configuración del servidor
 └── README.md           # Este archivo
 ```
 
-## 🚀 Despliegue
+### Endpoints Principales
 
-### Despliegue Automático (Recomendado)
+- **Documentación**: `http://your-server:8000/docs`
+- **Health Check**: `http://your-server:8000/health`
+- **API Base**: `http://your-server:8000/api`
 
-Para desplegar automáticamente en producción:
+### Monitoreo y Logs
 
-```bash
-# Ejecutar script de despliegue
-./deploy.sh
-```
+- **Logs de aplicación**: `/opt/kidsfun-backend/logs/`
+- **Logs del sistema**: `sudo journalctl -u kidsfun-backend`
+- **Estado del servicio**: `sudo systemctl status kidsfun-backend`
 
-Este script:
-- ✅ Verifica dependencias
-- ✅ Crea entorno virtual
-- ✅ Instala dependencias
-- ✅ Verifica conexión a BD
-- ✅ Ejecuta migraciones
-- ✅ Verifica configuración de email
-- ✅ Crea scripts de servicio
-- ✅ Configura Gunicorn
+### Seguridad
 
-### Despliegue Manual
+- ✅ Variables de entorno para credenciales
+- ✅ JWT para autenticación
+- ✅ CORS configurado
+- ✅ Validación de datos con Pydantic
+- ✅ Logs de acceso y errores
 
-Si prefieres desplegar manualmente:
+### Soporte
 
-1. **Configurar variables de entorno**
-```bash
-cp env.example .env
-# Editar .env con tus configuraciones
-```
-
-2. **Instalar dependencias**
-```bash
-python -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-```
-
-3. **Configurar base de datos**
-```bash
-alembic upgrade head
-```
-
-4. **Ejecutar con Gunicorn**
-```bash
-gunicorn main:app -w 4 -k uvicorn.workers.UvicornWorker
-```
-
-### Gestión del Servicio
-
-Una vez desplegado, puedes gestionar el servicio con:
-
-```bash
-# Iniciar servicio
-./start_service.sh
-
-# Parar servicio
-./stop_service.sh
-
-# Reiniciar servicio
-./restart_service.sh
-
-# Ver estado
-./status_service.sh
-```
-
-### Instalación como Servicio del Sistema
-
-Para que el backend se inicie automáticamente:
-
-```bash
-# Copiar archivo de servicio
-sudo cp kidsfun-backend.service /etc/systemd/system/
-
-# Recargar configuración
-sudo systemctl daemon-reload
-
-# Habilitar servicio
-sudo systemctl enable kidsfun-backend
-
-# Iniciar servicio
-sudo systemctl start kidsfun-backend
-
-# Verificar estado
-sudo systemctl status kidsfun-backend
-```
-
-## 🔧 Desarrollo
-
-Para desarrollo local:
-
-```bash
-# Activar entorno virtual
-source venv/bin/activate
-
-# Instalar dependencias
-pip install -r requirements.txt
-
-# Ejecutar con auto-reload
-uvicorn main:app --reload --host 0.0.0.0 --port 8000
-```
-
-## 🆕 Nuevas Funcionalidades
-
-### Sistema de Waivers
-- ✅ Creación de waivers con QR codes únicos
-- ✅ Validación de waivers por QR
-- ✅ Generación automática de PDFs
-- ✅ Envío de emails con PDFs adjuntos
-- ✅ Gestión de familiares por waiver
-- ✅ Expiración automática (24 horas)
-
-### Sistema de Chat
-- ✅ Salas de chat por usuario
-- ✅ Mensajería en tiempo real con WebSockets
-- ✅ Gestión de administradores de chat
-- ✅ Historial de mensajes
-- ✅ Notificaciones automáticas
-
-### Migraciones de Base de Datos
-- ✅ Alembic configurado para migraciones
-- ✅ Scripts automáticos de migración
-- ✅ Compatibilidad con base de datos existente
-
-### Configuración de Producción
-- ✅ Script de despliegue automático
-- ✅ Configuración de Gunicorn optimizada
-- ✅ Scripts de gestión de servicio
-- ✅ Configuración de systemd
-- ✅ Logging y monitoreo 
+Para problemas o consultas:
+- Revisar logs: `sudo journalctl -u kidsfun-backend -f`
+- Verificar configuración: `cat /opt/kidsfun-backend/.env`
+- Reiniciar servicio: `sudo systemctl restart kidsfun-backend` 

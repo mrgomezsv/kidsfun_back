@@ -1,0 +1,12 @@
+/opt/kidsfun-backend/logs/*.log {
+    daily
+    missingok
+    rotate 30
+    compress
+    delaycompress
+    notifempty
+    create 644 kidsfun kidsfun
+    postrotate
+        sudo systemctl restart kidsfun-backend
+    endscript
+} 

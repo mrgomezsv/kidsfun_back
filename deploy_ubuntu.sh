@@ -39,8 +39,8 @@ fi
 
 # Verificar si existe el archivo .env
 if [ ! -f ".env" ]; then
-    print_warning "No se encontró archivo .env. Copiando desde env.production.example..."
-    cp env.production.example .env
+    print_warning "No se encontró archivo .env. Copiando desde env.example..."
+    cp env.example .env
     print_warning "⚠️  IMPORTANTE: Edita el archivo .env con las configuraciones correctas antes de continuar"
     print_warning "   Especialmente el SECRET_KEY y las credenciales de la base de datos"
     exit 1
@@ -69,15 +69,15 @@ fi
 print_success "Dependencias básicas verificadas"
 
 # Crear entorno virtual si no existe
-if [ ! -d "venv" ]; then
+if [ ! -d ".env" ]; then
     print_status "Creando entorno virtual..."
-    python3 -m venv venv
+    python3 -m venv .env
     print_success "Entorno virtual creado"
 fi
 
 # Activar entorno virtual
 print_status "Activando entorno virtual..."
-source venv/bin/activate
+source .env/bin/activate
 
 # Actualizar pip
 print_status "Actualizando pip..."
@@ -91,6 +91,7 @@ print_success "Dependencias instaladas"
 
 # Verificar conexión a la base de datos
 print_status "Verificando conexión a la base de datos..."
+source .env/bin/activate
 python -c "
 import sys
 sys.path.append('.')
@@ -197,7 +198,7 @@ cat > start_service.sh << 'EOF'
 cd "$(dirname "$0")"
 
 # Activar entorno virtual
-source venv/bin/activate
+    source .env/bin/activate
 
 # Verificar si el servicio ya está corriendo
 if [ -f "logs/gunicorn.pid" ]; then
@@ -319,24 +320,13 @@ chmod +x status_service.sh
 
 print_success "Scripts de servicio creados"
 
-# Configurar supervisor
-print_status "Configurando supervisor..."
-sudo tee /etc/supervisor/conf.d/kidsfun-backend.conf << EOF
-[program:kidsfun-backend]
-command=/opt/kidsfun-backend/venv/bin/gunicorn -c /opt/kidsfun-backend/gunicorn.conf.py main:app
-directory=/opt/kidsfun-backend
-user=kidsfun
-autostart=true
-autorestart=true
-redirect_stderr=true
-stdout_logfile=/opt/kidsfun-backend/logs/supervisor.log
-stderr_logfile=/opt/kidsfun-backend/logs/supervisor_error.log
-EOF
+# Configurar systemd service
+print_status "Configurando systemd service..."
+sudo cp kidsfun-backend.service /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable kidsfun-backend
 
-sudo systemctl enable supervisor
-sudo systemctl restart supervisor
-
-print_success "Supervisor configurado"
+print_success "Systemd service configurado"
 
 # Configurar logrotate
 print_status "Configurando logrotate..."
@@ -350,7 +340,7 @@ sudo tee /etc/logrotate.d/kidsfun-backend << EOF
     notifempty
     create 644 kidsfun kidsfun
     postrotate
-        sudo supervisorctl restart kidsfun-backend
+        sudo systemctl restart kidsfun-backend
     endscript
 }
 EOF
@@ -407,17 +397,17 @@ fi
 
 # Iniciar el servicio
 print_status "Iniciando el servicio..."
-sudo supervisorctl restart kidsfun-backend
+sudo systemctl start kidsfun-backend
 
 # Esperar un momento para que el servicio se inicie
 sleep 5
 
 # Verificar que el servicio esté corriendo
-if sudo supervisorctl status kidsfun-backend | grep -q "RUNNING"; then
+if sudo systemctl is-active --quiet kidsfun-backend; then
     print_success "Servicio iniciado correctamente"
 else
     print_error "Error al iniciar el servicio"
-    sudo supervisorctl status kidsfun-backend
+    sudo systemctl status kidsfun-backend
     exit 1
 fi
 
@@ -433,10 +423,10 @@ echo "   • Logs: /opt/kidsfun-backend/logs/"
 echo "   • Archivos: /opt/kidsfun-backend/media/"
 echo ""
 echo "🚀 Comandos de gestión:"
-echo "   • Ver estado: sudo supervisorctl status kidsfun-backend"
-echo "   • Reiniciar: sudo supervisorctl restart kidsfun-backend"
-echo "   • Ver logs: sudo tail -f /opt/kidsfun-backend/logs/error.log"
-echo "   • Ver logs de supervisor: sudo tail -f /opt/kidsfun-backend/logs/supervisor.log"
+echo "   • Ver estado: sudo systemctl status kidsfun-backend"
+echo "   • Reiniciar: sudo systemctl restart kidsfun-backend"
+echo "   • Ver logs: sudo journalctl -u kidsfun-backend -f"
+echo "   • Ver logs de aplicación: sudo tail -f /opt/kidsfun-backend/logs/error.log"
 echo ""
 echo "📚 Documentación API:"
 echo "   • Swagger UI: http://tu-servidor/docs"
