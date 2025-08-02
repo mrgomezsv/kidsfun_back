@@ -133,6 +133,7 @@ kidsfun_back/
 ├── app/
 │   ├── config.py          # Configuración
 │   ├── database.py        # Configuración de BD
+│   ├── middleware.py      # Middleware de seguridad
 │   ├── models/            # Modelos SQLAlchemy
 │   ├── schemas/           # Esquemas Pydantic
 │   └── routers/           # Endpoints de la API
@@ -142,6 +143,8 @@ kidsfun_back/
 ├── env.example          # Variables de entorno
 ├── deploy_ubuntu.sh     # Script de despliegue
 ├── setup_server.sh      # Configuración del servidor
+├── update_security.sh   # Actualización de seguridad
+├── API_DOCUMENTATION.md # Documentación para consumir la API
 └── README.md           # Este archivo
 ```
 
@@ -149,6 +152,7 @@ kidsfun_back/
 
 - **Documentación**: `http://your-server:8000/docs`
 - **Health Check**: `http://your-server:8000/health`
+- **Security Info**: `http://your-server:8000/security-info`
 - **API Base**: `http://your-server:8000/api`
 
 ### Monitoreo y Logs
@@ -164,6 +168,29 @@ kidsfun_back/
 - ✅ CORS configurado
 - ✅ Validación de datos con Pydantic
 - ✅ Logs de acceso y errores
+- ✅ Rate limiting (10 requests/segundo por IP)
+- ✅ Validación de entrada (XSS, SQL injection protection)
+- ✅ Headers de seguridad (HSTS, CSP, X-Frame-Options)
+- ✅ Trusted hosts middleware
+- ✅ Logging de requests para auditoría
+
+### Actualización de Seguridad
+
+Para aplicar las últimas mejoras de seguridad:
+
+```bash
+# Actualizar seguridad
+chmod +x update_security.sh
+sudo ./update_security.sh
+```
+
+Este script:
+- ✅ Hace backup de la configuración actual
+- ✅ Obtiene cambios del repositorio
+- ✅ Actualiza dependencias
+- ✅ Aplica migraciones
+- ✅ Reinicia servicios
+- ✅ Verifica que todo funcione correctamente
 
 ### Soporte
 
@@ -171,6 +198,90 @@ Para problemas o consultas:
 - Revisar logs: `sudo journalctl -u kidsfun-backend -f`
 - Verificar configuración: `cat /opt/kidsfun-backend/.env`
 - Reiniciar servicio: `sudo systemctl restart kidsfun-backend`
+
+## 📚 **Documentación para Consumir la API**
+
+### **📖 Guía Completa de Integración**
+
+Para consumir la API de KidsFun, consulta la documentación completa:
+
+**📄 [API_DOCUMENTATION.md](API_DOCUMENTATION.md)**
+
+Esta guía incluye:
+
+#### **🔐 Autenticación y Seguridad**
+- ✅ Obtener y usar tokens JWT
+- ✅ Registro de usuarios
+- ✅ Mejores prácticas de seguridad
+- ✅ Manejo de errores de autenticación
+
+#### **📋 Endpoints Detallados**
+- ✅ **Autenticación**: Login, registro, obtener usuario actual
+- ✅ **Usuarios**: CRUD completo de usuarios
+- ✅ **Productos**: Gestión de productos con imágenes
+- ✅ **Likes**: Sistema de likes para productos
+- ✅ **Comentarios**: Sistema de comentarios
+- ✅ **Eventos**: Gestión de eventos
+- ✅ **Waivers**: Sistema de waivers con QR
+- ✅ **Chat**: Sistema de chat en tiempo real
+
+#### **📱 Ejemplos por Tecnología**
+- ✅ **JavaScript/Fetch**: Ejemplos con fetch API
+- ✅ **Axios**: Configuración con interceptors
+- ✅ **React Hooks**: Custom hooks para React
+- ✅ **cURL**: Ejemplos de línea de comandos
+
+#### **🔒 Mejores Prácticas de Seguridad**
+- ✅ Manejo seguro de tokens
+- ✅ Renovación automática de tokens
+- ✅ Validación de datos del cliente
+- ✅ Manejo de errores de seguridad
+- ✅ Rate limiting y protección contra ataques
+
+#### **🚨 Limitaciones y Rate Limiting**
+- ✅ Rate limit: 10 requests por segundo por IP
+- ✅ Tamaño máximo de archivo: 10MB
+- ✅ Tiempo de expiración del token: 30 minutos
+- ✅ Máximo de productos por página: 100
+
+### **🎯 URLs de Documentación**
+
+- **📖 Swagger UI**: https://api.kidsfunyfiestasinfantiles.com/docs
+- **📋 ReDoc**: https://api.kidsfunyfiestasinfantiles.com/redoc
+- **💚 Health Check**: https://api.kidsfunyfiestasinfantiles.com/health
+- **🛡️ Security Info**: https://api.kidsfunyfiestasinfantiles.com/security-info
+
+### **🔐 Ejemplo Rápido de Autenticación**
+
+```javascript
+// Login para obtener token
+const login = async (username, password) => {
+  const response = await fetch('https://api.kidsfunyfiestasinfantiles.com/api/auth/login', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+    body: `username=${username}&password=${password}`
+  });
+  
+  const data = await response.json();
+  localStorage.setItem('auth_token', data.access_token);
+  return data;
+};
+
+// Usar token en requests
+const getProducts = async () => {
+  const token = localStorage.getItem('auth_token');
+  const response = await fetch('https://api.kidsfunyfiestasinfantiles.com/api/products/', {
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    }
+  });
+  
+  return response.json();
+};
+```
 
 ## 🎉 **DESPLIEGUE EXITOSO - VERIFICACIÓN**
 
@@ -182,6 +293,7 @@ Tu API de KidsFun está **completamente desplegada y funcionando** en producció
 - **🔒 SSL/HTTPS:** Configurado automáticamente con Certbot
 - **📊 Health Check:** https://api.kidsfunyfiestasinfantiles.com/health
 - **📚 Documentación:** https://api.kidsfunyfiestasinfantiles.com/docs
+- **🛡️ Security Info:** https://api.kidsfunyfiestasinfantiles.com/security-info
 
 ### 🚀 **Comandos de Gestión Disponibles**
 
@@ -199,6 +311,9 @@ sudo journalctl -u kidsfun-backend -f
 
 # Actualizar el proyecto (nuevas versiones)
 sudo update-kidsfun
+
+# Actualizar seguridad
+sudo ./update_security.sh
 ```
 
 ### 🔧 **Verificación del Sistema**
@@ -209,6 +324,9 @@ curl https://api.kidsfunyfiestasinfantiles.com/health
 
 # Verificar SSL
 curl -I https://api.kidsfunyfiestasinfantiles.com
+
+# Verificar información de seguridad
+curl https://api.kidsfunyfiestasinfantiles.com/security-info
 
 # Verificar salud del sistema
 cd /opt/kidsfun-backend
@@ -236,7 +354,12 @@ Al acceder a la URL principal, verás:
 {
     "message": "KidsFun API",
     "version": "1.0.0",
-    "docs": "/docs"
+    "docs": "/docs",
+    "security": {
+        "rate_limit": "10 requests/second",
+        "ssl_required": true,
+        "cors_enabled": true
+    }
 }
 ```
 
@@ -246,6 +369,7 @@ Al acceder a la URL principal, verás:
 - **💚 Health Check:** https://api.kidsfunyfiestasinfantiles.com/health
 - **📖 Swagger UI:** https://api.kidsfunyfiestasinfantiles.com/docs
 - **📋 ReDoc:** https://api.kidsfunyfiestasinfantiles.com/redoc
+- **🛡️ Security Info:** https://api.kidsfunyfiestasinfantiles.com/security-info
 
 ### 🔐 **Endpoints de la API**
 
@@ -261,12 +385,18 @@ Al acceder a la URL principal, verás:
 ### 🛡️ **Características de Seguridad Implementadas**
 
 - ✅ **SSL/HTTPS** automático con Let's Encrypt
-- ✅ **Rate Limiting** (10 requests/segundo)
+- ✅ **Rate Limiting** (10 requests/segundo por IP)
 - ✅ **CORS** configurado para dominios permitidos
 - ✅ **JWT** para autenticación
 - ✅ **Validación** de datos con Pydantic
 - ✅ **Logs** de acceso y errores
 - ✅ **Firewall** configurado
+- ✅ **XSS Protection** con validación de entrada
+- ✅ **SQL Injection Protection** con validación de patrones
+- ✅ **Security Headers** (HSTS, CSP, X-Frame-Options)
+- ✅ **Trusted Hosts** middleware
+- ✅ **Request Logging** para auditoría
+- ✅ **Input Validation** con patrones sospechosos
 
 ### 🔄 **Sistema de Actualización**
 
