@@ -7,6 +7,6 @@
     notifempty
     create 644 kidsfun kidsfun
     postrotate
-        sudo systemctl restart kidsfun-backend
+        systemctl restart kidsfun-backend
     endscript
 } 

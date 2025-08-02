@@ -8,8 +8,8 @@ Type=exec
 User=kidsfun
 Group=kidsfun
 WorkingDirectory=/opt/kidsfun-backend
-Environment=PATH=/opt/kidsfun-backend/.env/bin
-ExecStart=/opt/kidsfun-backend/.env/bin/gunicorn -c /opt/kidsfun-backend/gunicorn.conf.py main:app
+Environment=PATH=/opt/kidsfun-backend/venv/bin
+ExecStart=/opt/kidsfun-backend/venv/bin/gunicorn -c /opt/kidsfun-backend/gunicorn.conf.py main:app
 ExecReload=/bin/kill -s HUP $MAINPID
 Restart=always
 RestartSec=3
