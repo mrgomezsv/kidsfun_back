@@ -1,5 +1,6 @@
 from sqlalchemy import Column, Integer, String, Boolean, DateTime
 from sqlalchemy.sql import func
+from sqlalchemy.orm import relationship
 from ..database import Base
 
 class User(Base):
@@ -15,4 +16,7 @@ class User(Base):
     email = Column(String(254), unique=True, index=True, nullable=False)
     is_staff = Column(Boolean, default=False)
     is_active = Column(Boolean, default=True)
-    date_joined = Column(DateTime(timezone=True), server_default=func.now()) 
+    date_joined = Column(DateTime(timezone=True), server_default=func.now())
+    
+    # Relationship
+    products = relationship("Product", back_populates="user") 
