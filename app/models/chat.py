@@ -13,7 +13,7 @@ class ChatAdministrator(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     
     # Relationship
-    user = relationship("User", back_populates="chat_administrators")
+    user = relationship("User")
     
     def __str__(self):
         return self.email
@@ -28,7 +28,7 @@ class ChatRoom(Base):
     last_message_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
     
     # Relationships
-    user = relationship("User", back_populates="chat_rooms")
+    user = relationship("User")
     messages = relationship("ChatMessage", back_populates="chat_room", cascade="all, delete-orphan")
     
     def __str__(self):
@@ -46,7 +46,7 @@ class ChatMessage(Base):
     
     # Relationships
     chat_room = relationship("ChatRoom", back_populates="messages")
-    sender = relationship("User", back_populates="sent_messages")
+    sender = relationship("User")
     
     def __str__(self):
         return f"Message from {self.sender.username if self.sender else 'Unknown'} at {self.timestamp}" 
