@@ -7,25 +7,20 @@ class Product(Base):
     __tablename__ = "api_product"
     
     id = Column(Integer, primary_key=True, index=True)
-    img = Column(String(255), default='default_product_image.jpg')
+    img = Column(String(100), nullable=False)
     title = Column(String(100), nullable=False)
-    description = Column(Text, nullable=True)
-    price = Column(Numeric(10, 2), nullable=True)
+    description = Column(Text, nullable=False)
+    price = Column(Numeric(10, 2), nullable=False)
     category = Column(String(50), nullable=False)
-    circuits = Column(String(50), nullable=True)
-    dimensions = Column(String(50), nullable=True)
-    space = Column(String(50), nullable=True)
-    created = Column(DateTime(timezone=True), server_default=func.now())
-    publicated = Column(Boolean, default=False)
-    user_id = Column(Integer, ForeignKey("auth_user.id"), nullable=True)
-    youtube_url = Column(String(255), nullable=True, default='')
-    
-    # Additional images
-    img1 = Column(String(255), default='default_product_image.jpg')
-    img2 = Column(String(255), default='default_product_image.jpg')
-    img3 = Column(String(255), default='default_product_image.jpg')
-    img4 = Column(String(255), default='default_product_image.jpg')
-    img5 = Column(String(255), default='default_product_image.jpg')
+    created = Column(DateTime(timezone=True), nullable=False)
+    important = Column(Boolean, nullable=False)
+    img1 = Column(String(100), nullable=False)
+    img2 = Column(String(100), nullable=False)
+    img3 = Column(String(100), nullable=False)
+    img4 = Column(String(100), nullable=False)
+    img5 = Column(String(100), nullable=False)
+    user_id = Column(Integer, ForeignKey("auth_user.id"), nullable=False)
+    youtube_url = Column(String(255), nullable=False)
     
     # Relationship
     user = relationship("User", back_populates="products")
