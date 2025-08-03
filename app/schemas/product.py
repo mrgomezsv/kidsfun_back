@@ -29,12 +29,12 @@ class ProductUpdate(BaseModel):
 
 class ProductResponse(ProductBase):
     id: int
-    img: str
-    img1: str
-    img2: str
-    img3: str
-    img4: str
-    img5: str
+    img: Optional[str] = None
+    img1: Optional[str] = None
+    img2: Optional[str] = None
+    img3: Optional[str] = None
+    img4: Optional[str] = None
+    img5: Optional[str] = None
     created: datetime
     publicated: bool
     user_id: Optional[int] = None
