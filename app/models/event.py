@@ -17,7 +17,7 @@ class Event(Base):
     partners = Column(String(50), nullable=False)
     
     # Relationship
-    organizer = relationship("User", back_populates="events")
+    organizer = relationship("User")
     
     def __str__(self):
         return self.title 
