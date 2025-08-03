@@ -19,7 +19,6 @@ class ProductUpdate(BaseModel):
     price: Optional[Decimal] = None
     category: Optional[str] = Field(None, min_length=1, max_length=50)
     youtube_url: Optional[str] = None
-    important: Optional[bool] = None
 
 class ProductResponse(ProductBase):
     id: int
@@ -30,7 +29,6 @@ class ProductResponse(ProductBase):
     img4: str
     img5: str
     created: datetime
-    important: bool
     user_id: Optional[int] = None
     likes_count: Optional[int] = 0
     comments_count: Optional[int] = 0

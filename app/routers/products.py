@@ -30,7 +30,6 @@ async def get_products(
     limit: int = Query(100, ge=1, le=100),
     category: Optional[str] = None,
     search: Optional[str] = None,
-    important: Optional[bool] = None,
     db: Session = Depends(get_db)
 ):
     query = db.query(Product)
@@ -40,9 +39,6 @@ async def get_products(
     
     if search:
         query = query.filter(Product.title.ilike(f"%{search}%"))
-    
-    if important is not None:
-        query = query.filter(Product.important == important)
     
     products = query.offset(skip).limit(limit).all()
     
@@ -65,7 +61,6 @@ async def get_products(
             "price": product.price,
             "category": product.category,
             "created": product.created,
-            "important": product.important,
             "user_id": product.user_id,
             "youtube_url": product.youtube_url,
             "img": product.img,
@@ -104,7 +99,6 @@ async def get_product(product_id: int, db: Session = Depends(get_db)):
         "price": product.price,
         "category": product.category,
         "created": product.created,
-        "important": product.important,
         "user_id": product.user_id,
         "youtube_url": product.youtube_url,
         "img": product.img,
