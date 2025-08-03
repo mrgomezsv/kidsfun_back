@@ -70,6 +70,7 @@ async def get_waivers(
 @router.post("/", response_model=WaiverResponse)
 async def create_waiver(
     waiver: WaiverCreate,
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     """Crear un nuevo waiver con QR único"""
@@ -230,6 +231,7 @@ async def validate_waiver(
 @router.get("/{qr_code}", response_model=dict)
 async def get_waiver_data(
     qr_code: str,
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     """Obtener datos de un waiver por QR code"""

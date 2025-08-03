@@ -147,6 +147,51 @@ async def create_chat_room(
             detail=f"Error al crear sala de chat: {str(e)}"
         )
 
+@router.get("/{room_id}", response_model=ChatRoomResponse)
+async def get_chat_room(
+    room_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Obtener una sala de chat específica"""
+    try:
+        # Verificar acceso a la sala
+        room = db.query(ChatRoom).filter(ChatRoom.id == room_id).first()
+        if not room:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Sala de chat no encontrada"
+            )
+
+        # Verificar si el usuario tiene acceso
+        is_admin = db.query(ChatAdministrator).filter(
+            ChatAdministrator.user_id == current_user.id,
+            ChatAdministrator.is_active == True
+        ).first()
+
+        if not is_admin and room.user_id != current_user.id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="No tienes acceso a esta sala de chat"
+            )
+
+        return {
+            "id": room.id,
+            "user_id": room.user_id,
+            "created_at": room.created_at,
+            "is_active": room.is_active,
+            "last_message_at": room.last_message_at,
+            "user_name": room.user.username if room.user else "Usuario"
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error al obtener sala de chat: {str(e)}"
+        )
+
 @router.get("/rooms", response_model=List[ChatRoomResponse])
 async def get_chat_rooms(
     current_user: User = Depends(get_current_user),
