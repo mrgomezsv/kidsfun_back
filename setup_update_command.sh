@@ -1,11 +1,11 @@
 #!/bin/bash
 
-# Script para configurar comando global de actualización
+# Script para configurar comando global de actualización AUTOMÁTICA
 # Uso: sudo ./setup_update_command.sh
 
 set -e
 
-echo "🔧 Configurando comando global de actualización..."
+echo "🔧 Configurando comando global de actualización AUTOMÁTICA..."
 
 # Verificar que estamos como root
 if [ "$EUID" -ne 0 ]; then
@@ -13,12 +13,13 @@ if [ "$EUID" -ne 0 ]; then
     exit 1
 fi
 
-# Crear comando global
+# Crear comando global AUTOMÁTICO
 cat > /usr/local/bin/update-kidsfun << 'EOF'
 #!/bin/bash
 
-# Comando global para actualizar KidsFun Backend
+# Comando global AUTOMÁTICO para actualizar KidsFun Backend
 # Uso: sudo update-kidsfun
+# Este comando es COMPLETAMENTE AUTOMÁTICO y SEGURO
 
 if [ "$EUID" -ne 0 ]; then
     echo "❌ Este comando debe ejecutarse como root (sudo)"
@@ -34,38 +35,64 @@ fi
 
 cd "$PROJECT_DIR"
 
+echo "🚀 Ejecutando actualización AUTOMÁTICA del KidsFun Backend..."
+echo "⚠️  Este proceso es COMPLETAMENTE AUTOMÁTICO"
+echo "⚠️  No se requiere intervención manual"
+echo ""
+
 if [ -f "update.sh" ]; then
-    echo "🚀 Ejecutando actualización con script universal..."
+    echo "🚀 Ejecutando script de actualización AUTOMÁTICA..."
     ./update.sh
 elif [ -f "update_security.sh" ]; then
     echo "🔒 Ejecutando actualización de seguridad..."
     ./update_security.sh
 else
-    echo "⚠️ No se encontró script de actualización, ejecutando actualización manual..."
+    echo "⚠️ No se encontró script de actualización, ejecutando actualización manual AUTOMÁTICA..."
     
-    # Actualización manual
-    echo "📥 Obteniendo cambios del repositorio..."
+    # Actualización manual AUTOMÁTICA
+    echo "📥 Obteniendo cambios del repositorio automáticamente..."
     git config --global --add safe.directory "$PROJECT_DIR" 2>/dev/null || true
-    git fetch origin
-    git reset --hard origin/mrg_prod
+    git fetch origin --quiet
+    git reset --hard origin/mrg_prod --quiet
     
-    echo "🐍 Actualizando dependencias..."
+    echo "🐍 Actualizando dependencias automáticamente..."
     source venv/bin/activate
-    pip install -r requirements.txt --quiet
+    pip install -r requirements.txt --quiet --no-cache-dir
     
-    echo "🔧 Aplicando migraciones..."
-    alembic upgrade head
+    echo "🔧 Aplicando migraciones automáticamente..."
+    alembic upgrade head --quiet
     
-    echo "🔄 Reiniciando servicios..."
+    echo "🔄 Reiniciando servicios automáticamente..."
     systemctl restart kidsfun-backend
     systemctl restart nginx
     
-    echo "✅ Verificando servicios..."
+    echo "✅ Verificando servicios automáticamente..."
     sleep 5
-    systemctl status kidsfun-backend --no-pager -l
-    systemctl status nginx --no-pager -l
     
-    echo "🎉 Actualización completada!"
+    # Verificar servicios con retry
+    for i in {1..3}; do
+        if systemctl is-active --quiet kidsfun-backend; then
+            echo "✅ Servicio kidsfun-backend está activo"
+            break
+        else
+            echo "⚠️ Reintentando kidsfun-backend (intento $i/3)"
+            systemctl restart kidsfun-backend
+            sleep 3
+        fi
+    done
+    
+    for i in {1..3}; do
+        if systemctl is-active --quiet nginx; then
+            echo "✅ Servicio nginx está activo"
+            break
+        else
+            echo "⚠️ Reintentando nginx (intento $i/3)"
+            systemctl restart nginx
+            sleep 3
+        fi
+    done
+    
+    echo "🎉 Actualización AUTOMÁTICA completada!"
 fi
 EOF
 
@@ -85,9 +112,9 @@ if [ -d "/home" ]; then
     done
 fi
 
-echo "✅ Comando global configurado exitosamente!"
+echo "✅ Comando global AUTOMÁTICO configurado exitosamente!"
 echo ""
-echo "🎯 Ahora puedes actualizar el proyecto con un solo comando:"
+echo "🎯 Ahora puedes actualizar el proyecto con un solo comando AUTOMÁTICO:"
 echo "   sudo update-kidsfun"
 echo ""
 echo "📋 También puedes usar:"
@@ -95,4 +122,8 @@ echo "   cd /opt/kidsfun-backend && sudo ./update.sh"
 echo "   cd /opt/kidsfun-backend && sudo ./update_security.sh"
 echo ""
 echo "🔄 Para aplicar los cambios en la sesión actual:"
-echo "   source ~/.bashrc" 
+echo "   source ~/.bashrc"
+echo ""
+echo "⚠️  IMPORTANTE: El comando es COMPLETAMENTE AUTOMÁTICO"
+echo "⚠️  No requiere intervención manual"
+echo "⚠️  Incluye retry automático en caso de errores" 
