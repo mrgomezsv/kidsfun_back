@@ -30,6 +30,7 @@ async def get_products(
     limit: int = Query(100, ge=1, le=100),
     category: Optional[str] = None,
     search: Optional[str] = None,
+    publicated: Optional[bool] = None,
     db: Session = Depends(get_db)
 ):
     query = db.query(Product)
@@ -39,6 +40,9 @@ async def get_products(
     
     if search:
         query = query.filter(Product.title.ilike(f"%{search}%"))
+    
+    if publicated is not None:
+        query = query.filter(Product.publicated == publicated)
     
     products = query.offset(skip).limit(limit).all()
     
@@ -61,6 +65,7 @@ async def get_products(
             "price": product.price,
             "category": product.category,
             "created": product.created,
+            "publicated": product.publicated,
             "user_id": product.user_id,
             "youtube_url": product.youtube_url,
             "img": product.img,
@@ -69,6 +74,9 @@ async def get_products(
             "img3": product.img3,
             "img4": product.img4,
             "img5": product.img5,
+            "dimensions": product.dimensions,
+            "circuits": product.circuits,
+            "space": product.space,
             "likes_count": likes_count,
             "comments_count": comments_count
         }
@@ -99,6 +107,7 @@ async def get_product(product_id: int, db: Session = Depends(get_db)):
         "price": product.price,
         "category": product.category,
         "created": product.created,
+        "publicated": product.publicated,
         "user_id": product.user_id,
         "youtube_url": product.youtube_url,
         "img": product.img,
@@ -107,6 +116,9 @@ async def get_product(product_id: int, db: Session = Depends(get_db)):
         "img3": product.img3,
         "img4": product.img4,
         "img5": product.img5,
+        "dimensions": product.dimensions,
+        "circuits": product.circuits,
+        "space": product.space,
         "likes_count": likes_count,
         "comments_count": comments_count
     }

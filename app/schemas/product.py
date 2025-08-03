@@ -5,10 +5,13 @@ from decimal import Decimal
 
 class ProductBase(BaseModel):
     title: str = Field(..., min_length=1, max_length=100)
-    description: str
-    price: Decimal
+    description: Optional[str] = None
+    price: Optional[Decimal] = None
     category: str = Field(..., min_length=1, max_length=50)
-    youtube_url: str
+    youtube_url: Optional[str] = None
+    dimensions: Optional[str] = None
+    circuits: Optional[str] = None
+    space: Optional[str] = None
 
 class ProductCreate(ProductBase):
     pass
@@ -19,6 +22,10 @@ class ProductUpdate(BaseModel):
     price: Optional[Decimal] = None
     category: Optional[str] = Field(None, min_length=1, max_length=50)
     youtube_url: Optional[str] = None
+    publicated: Optional[bool] = None
+    dimensions: Optional[str] = None
+    circuits: Optional[str] = None
+    space: Optional[str] = None
 
 class ProductResponse(ProductBase):
     id: int
@@ -29,6 +36,7 @@ class ProductResponse(ProductBase):
     img4: str
     img5: str
     created: datetime
+    publicated: bool
     user_id: Optional[int] = None
     likes_count: Optional[int] = 0
     comments_count: Optional[int] = 0
