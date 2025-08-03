@@ -143,6 +143,8 @@ kidsfun_back/
 ├── env.example          # Variables de entorno
 ├── deploy_ubuntu.sh     # Script de despliegue
 ├── setup_server.sh      # Configuración del servidor
+├── update.sh            # Script de actualización automática
+├── setup_update_command.sh # Configuración del comando global
 ├── update_security.sh   # Actualización de seguridad
 ├── API_DOCUMENTATION.md # Documentación para consumir la API
 └── README.md           # Este archivo
@@ -173,6 +175,176 @@ kidsfun_back/
 - ✅ Headers de seguridad (HSTS, CSP, X-Frame-Options)
 - ✅ Trusted hosts middleware
 - ✅ Logging de requests para auditoría
+
+## 🔄 **Sistema de Actualización Automática**
+
+### **🚀 Comando Global de Actualización**
+
+Una vez desplegado, puedes actualizar el proyecto con **un solo comando**:
+
+```bash
+# Actualizar todo automáticamente
+sudo update-kidsfun
+```
+
+### **⚙️ Configuración del Comando Global**
+
+Para configurar el comando global (solo una vez):
+
+```bash
+# Ir al directorio del proyecto
+cd /opt/kidsfun-backend
+
+# Configurar el comando global
+sudo ./setup_update_command.sh
+
+# Aplicar cambios en la sesión actual
+source ~/.bashrc
+```
+
+### **🎯 Características del Sistema Automático**
+
+El comando `sudo update-kidsfun` hace **TODO automáticamente**:
+
+- ✅ **Backup automático** de configuración con timestamp
+- ✅ **Obtener cambios** del repositorio automáticamente
+- ✅ **Actualizar dependencias** de Python
+- ✅ **Aplicar migraciones** de base de datos
+- ✅ **Reiniciar servicios** (kidsfun-backend y nginx)
+- ✅ **Verificar servicios** con retry automático
+- ✅ **Verificar endpoints** con retry automático
+- ✅ **Limpiar backups** antiguos automáticamente
+- ✅ **Manejo de errores** robusto con reintentos
+
+### **📊 Ejemplo de Salida del Comando**
+
+```bash
+sudo update-kidsfun
+```
+
+**Salida esperada:**
+```
+🚀 Ejecutando actualización AUTOMÁTICA del KidsFun Backend...
+⚠️  Este proceso es COMPLETAMENTE AUTOMÁTICO
+⚠️  No se requiere intervención manual
+
+[INFO] 📁 Directorio del proyecto: /opt/kidsfun-backend
+[INFO] 🔄 Creando backup automático de la configuración...
+[SUCCESS] Backup automático completado
+[INFO] 🔧 Configurando Git automáticamente...
+[SUCCESS] Git configurado automáticamente
+[INFO] 📥 Obteniendo cambios del repositorio automáticamente...
+[SUCCESS] Proyecto actualizado automáticamente a la última versión
+[SUCCESS] ✅ Middleware de seguridad encontrado
+[SUCCESS] ✅ Documentación de API encontrada
+[SUCCESS] Dependencias actualizadas automáticamente
+[SUCCESS] Migraciones aplicadas automáticamente
+[SUCCESS] Servicios reiniciados automáticamente
+[SUCCESS] Servicio kidsfun-backend está activo
+[SUCCESS] Servicio nginx está activo
+[SUCCESS] Health check funcionando
+[SUCCESS] Security info endpoint funcionando
+🎉 ¡Actualización AUTOMÁTICA completada exitosamente!
+```
+
+### **🛠️ Scripts de Actualización Disponibles**
+
+#### **1. Comando Global (Recomendado)**
+```bash
+# Actualizar con un solo comando desde cualquier lugar
+sudo update-kidsfun
+```
+
+#### **2. Script Universal**
+```bash
+# Actualizar con el script universal
+cd /opt/kidsfun-backend
+sudo ./update.sh
+```
+
+#### **3. Script de Seguridad**
+```bash
+# Actualizar con el script de seguridad
+cd /opt/kidsfun-backend
+sudo ./update_security.sh
+```
+
+### **📁 Sistema de Backups**
+
+Los backups se guardan automáticamente en:
+```
+/opt/kidsfun-backend/backups/
+├── main.py.backup.20241203_001500
+├── .env.backup.20241203_001500
+├── main.py.backup.20241203_002000
+└── .env.backup.20241203_002000
+```
+
+**Características:**
+- ✅ **Backup automático** antes de cada actualización
+- ✅ **Timestamp único** para cada backup
+- ✅ **Limpieza automática** (mantiene solo los últimos 5)
+- ✅ **Recuperación fácil** si algo sale mal
+
+### **🔧 Verificación Post-Actualización**
+
+Después de cada actualización, puedes verificar:
+
+```bash
+# Verificar servicios
+sudo systemctl status kidsfun-backend
+sudo systemctl status nginx
+
+# Verificar endpoints
+curl https://api.kidsfunyfiestasinfantiles.com/health
+curl https://api.kidsfunyfiestasinfantiles.com/security-info
+
+# Ver logs
+sudo journalctl -u kidsfun-backend -f
+```
+
+### **🚨 Solución de Problemas**
+
+#### **Si el comando no funciona:**
+```bash
+# Verificar que existe
+which update-kidsfun
+
+# Reconfigurar si es necesario
+cd /opt/kidsfun-backend
+sudo ./setup_update_command.sh
+source ~/.bashrc
+```
+
+#### **Si hay errores de permisos:**
+```bash
+# Dar permisos de ejecución
+chmod +x update.sh
+chmod +x setup_update_command.sh
+```
+
+#### **Si hay errores de Git:**
+```bash
+# Configurar Git manualmente
+git config --global --add safe.directory /opt/kidsfun-backend
+```
+
+### **📋 Comandos Útiles de Actualización**
+
+```bash
+# Actualización completa automática
+sudo update-kidsfun
+
+# Verificar estado antes de actualizar
+sudo systemctl status kidsfun-backend
+curl https://api.kidsfunyfiestasinfantiles.com/health
+
+# Ver logs durante la actualización
+sudo journalctl -u kidsfun-backend -f
+
+# Verificar después de la actualización
+curl https://api.kidsfunyfiestasinfantiles.com/security-info
+```
 
 ### Actualización de Seguridad
 
