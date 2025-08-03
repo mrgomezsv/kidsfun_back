@@ -4,6 +4,7 @@ from typing import List
 
 from ..database import get_db
 from ..models.like import Like
+from ..models.user import User
 from ..schemas.like import LikeCreate, LikeResponse
 from ..routers.auth import get_current_user
 
@@ -13,6 +14,7 @@ router = APIRouter()
 async def get_likes(
     product_id: int = None,
     user_id: str = None,
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     query = db.query(Like)
@@ -29,6 +31,7 @@ async def get_likes(
 @router.post("/", response_model=LikeResponse)
 async def create_like(
     like: LikeCreate,
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     # Check if like already exists
@@ -54,6 +57,7 @@ async def create_like(
 @router.delete("/{like_id}")
 async def delete_like(
     like_id: int,
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     like = db.query(Like).filter(Like.id == like_id).first()

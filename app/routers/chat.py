@@ -48,6 +48,105 @@ class ConnectionManager:
 
 manager = ConnectionManager()
 
+@router.get("/", response_model=List[ChatRoomResponse])
+async def get_chat_rooms(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Obtener todas las salas de chat del usuario"""
+    try:
+        # Verificar si el usuario es administrador
+        is_admin = db.query(ChatAdministrator).filter(
+            ChatAdministrator.user_id == current_user.id,
+            ChatAdministrator.is_active == True
+        ).first()
+
+        if is_admin:
+            # Administrador ve todas las salas activas
+            rooms = db.query(ChatRoom).filter(
+                ChatRoom.is_active == True
+            ).order_by(ChatRoom.last_message_at.desc()).all()
+        else:
+            # Usuario normal ve solo sus salas
+            rooms = db.query(ChatRoom).filter(
+                ChatRoom.user_id == current_user.id,
+                ChatRoom.is_active == True
+            ).order_by(ChatRoom.last_message_at.desc()).all()
+
+        return [
+            {
+                "id": room.id,
+                "user_id": room.user_id,
+                "created_at": room.created_at,
+                "is_active": room.is_active,
+                "last_message_at": room.last_message_at,
+                "user_name": room.user.username if room.user else "Usuario"
+            }
+            for room in rooms
+        ]
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error al obtener salas de chat: {str(e)}"
+        )
+
+@router.post("/", response_model=ChatRoomResponse)
+async def create_chat_room(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Crear una nueva sala de chat"""
+    try:
+        # Verificar si ya existe una sala activa para este usuario
+        existing_room = db.query(ChatRoom).filter(
+            ChatRoom.user_id == current_user.id,
+            ChatRoom.is_active == True
+        ).first()
+
+        if existing_room:
+            return {
+                "id": existing_room.id,
+                "user_id": existing_room.user_id,
+                "created_at": existing_room.created_at,
+                "is_active": existing_room.is_active,
+                "last_message_at": existing_room.last_message_at,
+                "user_name": existing_room.user.username if existing_room.user else "Usuario"
+            }
+
+        # Crear nueva sala
+        new_room = ChatRoom(
+            user_id=current_user.id
+        )
+        db.add(new_room)
+        db.commit()
+        db.refresh(new_room)
+
+        # Crear mensaje de bienvenida
+        welcome_message = ChatMessage(
+            chat_room_id=new_room.id,
+            sender_id=current_user.id,
+            content="¡Hola! Bienvenido al chat de KidsFun. ¿En qué podemos ayudarte?"
+        )
+        db.add(welcome_message)
+        db.commit()
+
+        return {
+            "id": new_room.id,
+            "user_id": new_room.user_id,
+            "created_at": new_room.created_at,
+            "is_active": new_room.is_active,
+            "last_message_at": new_room.last_message_at,
+            "user_name": new_room.user.username if new_room.user else "Usuario"
+        }
+
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error al crear sala de chat: {str(e)}"
+        )
+
 @router.get("/rooms", response_model=List[ChatRoomResponse])
 async def get_chat_rooms(
     current_user: User = Depends(get_current_user),

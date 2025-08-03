@@ -23,6 +23,50 @@ from ..utils.pdf import create_waiver_pdf
 
 router = APIRouter()
 
+@router.get("/", response_model=List[dict])
+async def get_waivers(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Obtener todos los waivers del usuario actual"""
+    try:
+        waivers = db.query(WaiverValidator).filter(
+            WaiverValidator.user_id == current_user.id
+        ).order_by(WaiverValidator.created_at.desc()).all()
+
+        waiver_list = []
+        for waiver in waivers:
+            relatives_data = db.query(WaiverData).filter(
+                WaiverData.user_id == waiver.user_id
+            ).all()
+
+            relatives = []
+            for relative in relatives_data:
+                relatives.append({
+                    "name": relative.relative_name,
+                    "age": relative.relative_age
+                })
+
+            waiver_age = datetime.now() - waiver.created_at
+            status = "ACTIVE" if waiver_age <= timedelta(hours=24) else "EXPIRED"
+
+            waiver_list.append({
+                "qr_code": waiver.email,
+                "user_name": relatives_data[0].user_name if relatives_data else "Usuario",
+                "user_email": waiver.email,
+                "created_at": waiver.created_at,
+                "status": status,
+                "relatives": relatives
+            })
+
+        return waiver_list
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error al obtener waivers: {str(e)}"
+        )
+
 @router.post("/", response_model=WaiverResponse)
 async def create_waiver(
     waiver: WaiverCreate,
