@@ -4,7 +4,7 @@ from sqlalchemy.orm import relationship
 from ..database import Base
 
 class Product(Base):
-    __tablename__ = "api_product"
+    __tablename__ = "t_app_product_product"
     
     id = Column(Integer, primary_key=True, index=True)
     img = Column(String(100), nullable=False)
