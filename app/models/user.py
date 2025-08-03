@@ -18,5 +18,5 @@ class User(Base):
     is_active = Column(Boolean, default=True)
     date_joined = Column(DateTime(timezone=True), server_default=func.now())
     
-    # Relationship
+    # Relationships
     products = relationship("Product", back_populates="user") 
