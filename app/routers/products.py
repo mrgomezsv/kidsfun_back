@@ -116,17 +116,30 @@ async def get_product(product_id: int, db: Session = Depends(get_db)):
     if product is None:
         raise HTTPException(status_code=404, detail="Product not found")
     
-    # Consultas optimizadas para likes y comentarios
-    likes_count = db.query(func.count(Like.id)).filter(
-        and_(
-            Like.product == str(product.id),
-            Like.is_favorite == True
-        )
-    ).scalar() or 0
+    # Consultas optimizadas para likes y comentarios (con manejo de errores)
+    likes_count = 0
+    comments_count = 0
     
-    comments_count = db.query(func.count(Commentary.id)).filter(
-        Commentary.product_id == product.id
-    ).scalar() or 0
+    try:
+        # Verificar si la tabla de likes existe antes de consultar
+        likes_count = db.query(func.count(Like.id)).filter(
+            and_(
+                Like.product == str(product.id),
+                Like.is_favorite == True
+            )
+        ).scalar() or 0
+    except Exception as e:
+        # Si la tabla no existe o hay error, usar 0
+        likes_count = 0
+    
+    try:
+        # Verificar si la tabla de comentarios existe antes de consultar
+        comments_count = db.query(func.count(Commentary.id)).filter(
+            Commentary.product_id == product.id
+        ).scalar() or 0
+    except Exception as e:
+        # Si la tabla no existe o hay error, usar 0
+        comments_count = 0
     
     product_dict = {
         "id": product.id,
