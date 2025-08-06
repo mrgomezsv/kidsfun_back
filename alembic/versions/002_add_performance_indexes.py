@@ -16,19 +16,37 @@ depends_on = None
 
 def upgrade():
     # Agregar índices para mejorar el rendimiento de las consultas
+    # Solo crear índices en tablas que existen
     op.create_index('idx_product_category', 't_app_product_product', ['category'])
     op.create_index('idx_product_publicated', 't_app_product_product', ['publicated'])
     op.create_index('idx_product_user_id', 't_app_product_product', ['user_id'])
     op.create_index('idx_product_title', 't_app_product_product', ['title'])
     
-    # Índices para likes
-    op.create_index('idx_like_product', 't_app_like_like', ['product'])
-    op.create_index('idx_like_is_favorite', 't_app_like_like', ['is_favorite'])
-    op.create_index('idx_like_product_favorite', 't_app_like_like', ['product', 'is_favorite'])
+    # Verificar si las tablas de likes y comentarios existen antes de crear índices
+    connection = op.get_bind()
     
-    # Índices para comentarios
-    op.create_index('idx_commentary_product_id', 't_app_commentary_commentary', ['product_id'])
-    op.create_index('idx_commentary_created', 't_app_commentary_commentary', ['created'])
+    # Verificar si existe la tabla de likes
+    likes_exists = connection.execute(sa.text("""
+        SELECT COUNT(*) 
+        FROM information_schema.tables 
+        WHERE table_name = 't_app_like_like'
+    """)).scalar() > 0
+    
+    if likes_exists:
+        op.create_index('idx_like_product', 't_app_like_like', ['product'])
+        op.create_index('idx_like_is_favorite', 't_app_like_like', ['is_favorite'])
+        op.create_index('idx_like_product_favorite', 't_app_like_like', ['product', 'is_favorite'])
+    
+    # Verificar si existe la tabla de comentarios
+    comments_exists = connection.execute(sa.text("""
+        SELECT COUNT(*) 
+        FROM information_schema.tables 
+        WHERE table_name = 't_app_commentary_commentary'
+    """)).scalar() > 0
+    
+    if comments_exists:
+        op.create_index('idx_commentary_product_id', 't_app_commentary_commentary', ['product_id'])
+        op.create_index('idx_commentary_created', 't_app_commentary_commentary', ['created'])
 
 def downgrade():
     # Remover índices
@@ -37,9 +55,26 @@ def downgrade():
     op.drop_index('idx_product_user_id', table_name='t_app_product_product')
     op.drop_index('idx_product_title', table_name='t_app_product_product')
     
-    op.drop_index('idx_like_product', table_name='t_app_like_like')
-    op.drop_index('idx_like_is_favorite', table_name='t_app_like_like')
-    op.drop_index('idx_like_product_favorite', table_name='t_app_like_like')
+    # Verificar si las tablas existen antes de remover índices
+    connection = op.get_bind()
     
-    op.drop_index('idx_commentary_product_id', table_name='t_app_commentary_commentary')
-    op.drop_index('idx_commentary_created', table_name='t_app_commentary_commentary') 
+    likes_exists = connection.execute(sa.text("""
+        SELECT COUNT(*) 
+        FROM information_schema.tables 
+        WHERE table_name = 't_app_like_like'
+    """)).scalar() > 0
+    
+    if likes_exists:
+        op.drop_index('idx_like_product', table_name='t_app_like_like')
+        op.drop_index('idx_like_is_favorite', table_name='t_app_like_like')
+        op.drop_index('idx_like_product_favorite', table_name='t_app_like_like')
+    
+    comments_exists = connection.execute(sa.text("""
+        SELECT COUNT(*) 
+        FROM information_schema.tables 
+        WHERE table_name = 't_app_commentary_commentary'
+    """)).scalar() > 0
+    
+    if comments_exists:
+        op.drop_index('idx_commentary_product_id', table_name='t_app_commentary_commentary')
+        op.drop_index('idx_commentary_created', table_name='t_app_commentary_commentary') 
