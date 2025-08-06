@@ -1,44 +1,90 @@
-# 📞 API de Formulario de Contacto - KidsFun
+# 📞 API de Contacto - KidsFun Backend
 
-## 📋 Índice
-- [Información General](#información-general)
-- [Endpoints](#endpoints)
-- [Ejemplos de Uso](#ejemplos-de-uso)
-- [Integración con Frontend](#integración-con-frontend)
-- [Notificaciones por Email](#notificaciones-por-email)
+## 📋 **Resumen**
+
+API para la gestión de formularios de contacto en el sistema KidsFun, permitiendo a los usuarios enviar mensajes y al equipo administrar las consultas recibidas.
+
+### 🎯 **Características Principales**
+- ✅ **Formulario Público** - No requiere autenticación para enviar
+- ✅ **Notificaciones por Email** - Envía email automático al recibir formulario
+- ✅ **Gestión de Contactos** - Panel de administración para ver y gestionar contactos
+- ✅ **Estadísticas** - Resumen de contactos recibidos
+- ✅ **Validación de Datos** - Validación automática de campos
+- ✅ **Estado de Gestión** - Marcado como leído y respondido
 
 ---
 
-## 🌐 Información General
+## 🌐 **Información General**
 
-### Base URL
+### **Base URL**
 ```
 https://api.kidsfunyfiestasinfantiles.com
 ```
 
-### Endpoint Principal
+### **Endpoint Principal**
 ```
 /api/contact/
 ```
 
-### Características
-- ✅ **Formulario público** - No requiere autenticación para enviar
-- ✅ **Notificaciones por email** - Envía email automático al recibir formulario
-- ✅ **Gestión de contactos** - Panel de administración para ver y gestionar contactos
-- ✅ **Estadísticas** - Resumen de contactos recibidos
-- ✅ **Validación de datos** - Validación automática de campos
+### **Versión**
+```
+v1.0.0
+```
 
 ---
 
-## 🚀 Endpoints
+## 🗄️ **Estructura de la Base de Datos**
 
-### 1. Crear Formulario de Contacto (PÚBLICO)
+### **Tabla: `t_app_contact`**
 
-#### Request
+```sql
+CREATE TABLE t_app_contact (
+    id INTEGER PRIMARY KEY,
+    first_name VARCHAR(100) NOT NULL,
+    last_name VARCHAR(100) NOT NULL,
+    contact_number VARCHAR(20) NOT NULL,
+    email VARCHAR(255) NOT NULL,
+    reason TEXT NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    is_read BOOLEAN DEFAULT FALSE,
+    is_responded BOOLEAN DEFAULT FALSE
+);
+```
+
+### **Campos de la Tabla**
+
+| Campo | Tipo | Descripción | Requerido |
+|-------|------|-------------|-----------|
+| `id` | INTEGER | ID único del contacto | ✅ |
+| `first_name` | VARCHAR(100) | Nombre del contacto | ✅ |
+| `last_name` | VARCHAR(100) | Apellido del contacto | ✅ |
+| `contact_number` | VARCHAR(20) | Número de teléfono | ✅ |
+| `email` | VARCHAR(255) | Email del contacto | ✅ |
+| `reason` | TEXT | Mensaje o razón del contacto | ✅ |
+| `created_at` | TIMESTAMP | Fecha de creación | ✅ |
+| `is_read` | BOOLEAN | Estado de lectura | ❌ |
+| `is_responded` | BOOLEAN | Estado de respuesta | ❌ |
+
+---
+
+## 🚀 **Endpoints**
+
+### **1. Crear Formulario de Contacto - `POST /api/contact/`**
+
+Crea un nuevo formulario de contacto (PÚBLICO - no requiere autenticación).
+
+#### **URL**
+```
+POST https://api.kidsfunyfiestasinfantiles.com/api/contact/
+```
+
+#### **Headers**
 ```http
-POST /api/contact/
 Content-Type: application/json
+```
 
+#### **Body**
+```json
 {
   "first_name": "Juan",
   "last_name": "Pérez",
@@ -48,7 +94,7 @@ Content-Type: application/json
 }
 ```
 
-#### Response
+#### **Response Exitosa (201)**
 ```json
 {
   "id": 1,
@@ -57,686 +103,13 @@ Content-Type: application/json
   "contact_number": "+1 (555) 123-4567",
   "email": "juan.perez@ejemplo.com",
   "reason": "Hola, me gustaría obtener información sobre sus servicios de fiestas infantiles. ¿Podrían enviarme un catálogo de productos y precios?",
-  "created_at": "2025-08-06T02:30:00.000000Z",
+  "created_at": "2024-01-01T00:00:00Z",
   "is_read": false,
   "is_responded": false
 }
 ```
 
-### 2. Obtener Todos los Contactos (Requiere Autenticación)
-
-#### Request
-```http
-GET /api/contact/
-Authorization: Bearer {{token}}
-```
-
-#### Parámetros de Query
-- `skip` (int, opcional): Número de contactos a saltar (default: 0)
-- `limit` (int, opcional): Número máximo de contactos (default: 100, max: 100)
-- `is_read` (boolean, opcional): Filtrar por estado de lectura
-- `is_responded` (boolean, opcional): Filtrar por estado de respuesta
-
-#### Ejemplos
-```http
-# Obtener contactos no leídos
-GET /api/contact/?is_read=false
-
-# Obtener contactos no respondidos
-GET /api/contact/?is_responded=false
-
-# Obtener primeros 10 contactos
-GET /api/contact/?limit=10
-```
-
-#### Response
-```json
-[
-  {
-    "id": 1,
-    "first_name": "Juan",
-    "last_name": "Pérez",
-    "contact_number": "+1 (555) 123-4567",
-    "email": "juan.perez@ejemplo.com",
-    "reason": "Hola, me gustaría obtener información sobre sus servicios...",
-    "created_at": "2025-08-06T02:30:00.000000Z",
-    "is_read": false,
-    "is_responded": false
-  },
-  {
-    "id": 2,
-    "first_name": "María",
-    "last_name": "García",
-    "contact_number": "+1 (555) 987-6543",
-    "email": "maria.garcia@ejemplo.com",
-    "reason": "Necesito cotización para una fiesta de cumpleaños...",
-    "created_at": "2025-08-06T01:15:00.000000Z",
-    "is_read": true,
-    "is_responded": false
-  }
-]
-```
-
-### 3. Obtener Contacto Específico (Requiere Autenticación)
-
-#### Request
-```http
-GET /api/contact/1
-Authorization: Bearer {{token}}
-```
-
-#### Response
-```json
-{
-  "id": 1,
-  "first_name": "Juan",
-  "last_name": "Pérez",
-  "contact_number": "+1 (555) 123-4567",
-  "email": "juan.perez@ejemplo.com",
-  "reason": "Hola, me gustaría obtener información sobre sus servicios de fiestas infantiles. ¿Podrían enviarme un catálogo de productos y precios?",
-  "created_at": "2025-08-06T02:30:00.000000Z",
-  "is_read": false,
-  "is_responded": false
-}
-```
-
-### 4. Actualizar Contacto (Requiere Autenticación)
-
-#### Request
-```http
-PUT /api/contact/1
-Authorization: Bearer {{token}}
-Content-Type: application/json
-
-{
-  "is_read": true,
-  "is_responded": true
-}
-```
-
-#### Response
-```json
-{
-  "id": 1,
-  "first_name": "Juan",
-  "last_name": "Pérez",
-  "contact_number": "+1 (555) 123-4567",
-  "email": "juan.perez@ejemplo.com",
-  "reason": "Hola, me gustaría obtener información sobre sus servicios de fiestas infantiles. ¿Podrían enviarme un catálogo de productos y precios?",
-  "created_at": "2025-08-06T02:30:00.000000Z",
-  "is_read": true,
-  "is_responded": true
-}
-```
-
-### 5. Eliminar Contacto (Requiere Autenticación)
-
-#### Request
-```http
-DELETE /api/contact/1
-Authorization: Bearer {{token}}
-```
-
-#### Response
-```json
-{
-  "message": "Contacto eliminado exitosamente"
-}
-```
-
-### 6. Estadísticas de Contactos (Requiere Autenticación)
-
-#### Request
-```http
-GET /api/contact/stats/summary
-Authorization: Bearer {{token}}
-```
-
-#### Response
-```json
-{
-  "total_contacts": 25,
-  "unread_contacts": 8,
-  "responded_contacts": 15,
-  "pending_contacts": 10
-}
-```
-
----
-
-## 💡 Ejemplos de Uso
-
-### JavaScript (Fetch API)
-
-#### Enviar Formulario de Contacto
-```javascript
-async function submitContactForm(formData) {
-  try {
-    const response = await fetch('https://api.kidsfunyfiestasinfantiles.com/api/contact/', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        first_name: formData.firstName,
-        last_name: formData.lastName,
-        contact_number: formData.contactNumber,
-        email: formData.email,
-        reason: formData.reason
-      })
-    });
-
-    if (response.ok) {
-      const result = await response.json();
-      console.log('Formulario enviado exitosamente:', result);
-      return { success: true, data: result };
-    } else {
-      const error = await response.json();
-      console.error('Error al enviar formulario:', error);
-      return { success: false, error: error };
-    }
-  } catch (error) {
-    console.error('Error de red:', error);
-    return { success: false, error: error };
-  }
-}
-
-// Ejemplo de uso
-const formData = {
-  firstName: "Juan",
-  lastName: "Pérez",
-  contactNumber: "+1 (555) 123-4567",
-  email: "juan.perez@ejemplo.com",
-  reason: "Hola, me gustaría obtener información sobre sus servicios de fiestas infantiles."
-};
-
-submitContactForm(formData).then(result => {
-  if (result.success) {
-    alert('¡Formulario enviado exitosamente!');
-  } else {
-    alert('Error al enviar el formulario. Por favor, inténtalo de nuevo.');
-  }
-});
-```
-
-#### Obtener Contactos (Admin)
-```javascript
-async function getContacts(token) {
-  try {
-    const response = await fetch('https://api.kidsfunyfiestasinfantiles.com/api/contact/', {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      }
-    });
-
-    if (response.ok) {
-      const contacts = await response.json();
-      console.log('Contactos obtenidos:', contacts);
-      return contacts;
-    } else {
-      console.error('Error al obtener contactos');
-      return null;
-    }
-  } catch (error) {
-    console.error('Error de red:', error);
-    return null;
-  }
-}
-```
-
-### Python (requests)
-
-#### Enviar Formulario de Contacto
-```python
-import requests
-import json
-
-def submit_contact_form(first_name, last_name, contact_number, email, reason):
-    url = "https://api.kidsfunyfiestasinfantiles.com/api/contact/"
-    
-    data = {
-        "first_name": first_name,
-        "last_name": last_name,
-        "contact_number": contact_number,
-        "email": email,
-        "reason": reason
-    }
-    
-    try:
-        response = requests.post(url, json=data)
-        
-        if response.status_code == 200:
-            result = response.json()
-            print("Formulario enviado exitosamente:", result)
-            return {"success": True, "data": result}
-        else:
-            error = response.json()
-            print("Error al enviar formulario:", error)
-            return {"success": False, "error": error}
-            
-    except Exception as e:
-        print("Error de red:", str(e))
-        return {"success": False, "error": str(e)}
-
-# Ejemplo de uso
-result = submit_contact_form(
-    first_name="Juan",
-    last_name="Pérez",
-    contact_number="+1 (555) 123-4567",
-    email="juan.perez@ejemplo.com",
-    reason="Hola, me gustaría obtener información sobre sus servicios de fiestas infantiles."
-)
-
-if result["success"]:
-    print("¡Formulario enviado exitosamente!")
-else:
-    print("Error al enviar el formulario.")
-```
-
-### cURL
-
-#### Enviar Formulario de Contacto
-```bash
-curl -X POST "https://api.kidsfunyfiestasinfantiles.com/api/contact/" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "first_name": "Juan",
-    "last_name": "Pérez",
-    "contact_number": "+1 (555) 123-4567",
-    "email": "juan.perez@ejemplo.com",
-    "reason": "Hola, me gustaría obtener información sobre sus servicios de fiestas infantiles."
-  }'
-```
-
-#### Obtener Contactos (Admin)
-```bash
-curl -X GET "https://api.kidsfunyfiestasinfantiles.com/api/contact/" \
-  -H "Authorization: Bearer YOUR_TOKEN" \
-  -H "Content-Type: application/json"
-```
-
----
-
-## 🎨 Integración con Frontend
-
-### HTML Formulario de Contacto
-```html
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Formulario de Contacto - KidsFun</title>
-    <style>
-        .contact-form {
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 20px;
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-        
-        .form-group {
-            margin-bottom: 20px;
-        }
-        
-        .form-row {
-            display: flex;
-            gap: 15px;
-        }
-        
-        .form-row .form-group {
-            flex: 1;
-        }
-        
-        label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-            color: #333;
-        }
-        
-        input, textarea {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            font-size: 16px;
-        }
-        
-        textarea {
-            height: 120px;
-            resize: vertical;
-        }
-        
-        .submit-btn {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 12px 30px;
-            border: none;
-            border-radius: 25px;
-            font-size: 16px;
-            cursor: pointer;
-            transition: transform 0.2s;
-        }
-        
-        .submit-btn:hover {
-            transform: translateY(-2px);
-        }
-        
-        .success-message {
-            background: #d4edda;
-            color: #155724;
-            padding: 15px;
-            border-radius: 5px;
-            margin-top: 20px;
-        }
-        
-        .error-message {
-            background: #f8d7da;
-            color: #721c24;
-            padding: 15px;
-            border-radius: 5px;
-            margin-top: 20px;
-        }
-    </style>
-</head>
-<body>
-    <div class="contact-form">
-        <h2>📞 Contáctanos</h2>
-        <p>¿Tienes alguna pregunta? ¡Nos encantaría escucharte!</p>
-        
-        <form id="contactForm">
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="firstName">First name</label>
-                    <input type="text" id="firstName" name="firstName" required>
-                </div>
-                <div class="form-group">
-                    <label for="lastName">Last name</label>
-                    <input type="text" id="lastName" name="lastName" required>
-                </div>
-            </div>
-            
-            <div class="form-group">
-                <label for="contactNumber">Your Contact Number</label>
-                <input type="tel" id="contactNumber" name="contactNumber" 
-                       placeholder="+1 (000) 000 - 0000" required>
-            </div>
-            
-            <div class="form-group">
-                <label for="email">Your Email</label>
-                <input type="email" id="email" name="email" 
-                       placeholder="example@mail.com" required>
-            </div>
-            
-            <div class="form-group">
-                <label for="reason">Reason</label>
-                <textarea id="reason" name="reason" 
-                          placeholder="Cuéntanos cómo podemos ayudarte..." required></textarea>
-            </div>
-            
-            <button type="submit" class="submit-btn">Submit</button>
-        </form>
-        
-        <div id="message"></div>
-    </div>
-
-    <script>
-        document.getElementById('contactForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const formData = {
-                first_name: document.getElementById('firstName').value,
-                last_name: document.getElementById('lastName').value,
-                contact_number: document.getElementById('contactNumber').value,
-                email: document.getElementById('email').value,
-                reason: document.getElementById('reason').value
-            };
-            
-            try {
-                const response = await fetch('https://api.kidsfunyfiestasinfantiles.com/api/contact/', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(formData)
-                });
-                
-                const result = await response.json();
-                
-                if (response.ok) {
-                    document.getElementById('message').innerHTML = 
-                        '<div class="success-message">¡Gracias por contactarnos! Te responderemos pronto.</div>';
-                    document.getElementById('contactForm').reset();
-                } else {
-                    document.getElementById('message').innerHTML = 
-                        '<div class="error-message">Error al enviar el formulario. Por favor, inténtalo de nuevo.</div>';
-                }
-            } catch (error) {
-                document.getElementById('message').innerHTML = 
-                    '<div class="error-message">Error de conexión. Por favor, inténtalo de nuevo.</div>';
-            }
-        });
-    </script>
-</body>
-</html>
-```
-
-### React Component
-```jsx
-import React, { useState } from 'react';
-
-const ContactForm = () => {
-  const [formData, setFormData] = useState({
-    first_name: '',
-    last_name: '',
-    contact_number: '',
-    email: '',
-    reason: ''
-  });
-  const [message, setMessage] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    setMessage('');
-
-    try {
-      const response = await fetch('https://api.kidsfunyfiestasinfantiles.com/api/contact/', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData)
-      });
-
-      const result = await response.json();
-
-      if (response.ok) {
-        setMessage('¡Gracias por contactarnos! Te responderemos pronto.');
-        setFormData({
-          first_name: '',
-          last_name: '',
-          contact_number: '',
-          email: '',
-          reason: ''
-        });
-      } else {
-        setMessage('Error al enviar el formulario. Por favor, inténtalo de nuevo.');
-      }
-    } catch (error) {
-      setMessage('Error de conexión. Por favor, inténtalo de nuevo.');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  return (
-    <div className="contact-form">
-      <h2>📞 Contáctanos</h2>
-      <p>¿Tienes alguna pregunta? ¡Nos encantaría escucharte!</p>
-      
-      <form onSubmit={handleSubmit}>
-        <div className="form-row">
-          <div className="form-group">
-            <label htmlFor="first_name">First name</label>
-            <input
-              type="text"
-              id="first_name"
-              name="first_name"
-              value={formData.first_name}
-              onChange={handleChange}
-              required
-            />
-          </div>
-          <div className="form-group">
-            <label htmlFor="last_name">Last name</label>
-            <input
-              type="text"
-              id="last_name"
-              name="last_name"
-              value={formData.last_name}
-              onChange={handleChange}
-              required
-            />
-          </div>
-        </div>
-        
-        <div className="form-group">
-          <label htmlFor="contact_number">Your Contact Number</label>
-          <input
-            type="tel"
-            id="contact_number"
-            name="contact_number"
-            value={formData.contact_number}
-            onChange={handleChange}
-            placeholder="+1 (000) 000 - 0000"
-            required
-          />
-        </div>
-        
-        <div className="form-group">
-          <label htmlFor="email">Your Email</label>
-          <input
-            type="email"
-            id="email"
-            name="email"
-            value={formData.email}
-            onChange={handleChange}
-            placeholder="example@mail.com"
-            required
-          />
-        </div>
-        
-        <div className="form-group">
-          <label htmlFor="reason">Reason</label>
-          <textarea
-            id="reason"
-            name="reason"
-            value={formData.reason}
-            onChange={handleChange}
-            placeholder="Cuéntanos cómo podemos ayudarte..."
-            required
-          />
-        </div>
-        
-        <button type="submit" className="submit-btn" disabled={isSubmitting}>
-          {isSubmitting ? 'Enviando...' : 'Submit'}
-        </button>
-      </form>
-      
-      {message && (
-        <div className={`message ${message.includes('Error') ? 'error' : 'success'}`}>
-          {message}
-        </div>
-      )}
-    </div>
-  );
-};
-
-export default ContactForm;
-```
-
----
-
-## 📧 Notificaciones por Email
-
-### Configuración Automática
-Cuando se envía un formulario de contacto, el sistema automáticamente:
-
-1. **Guarda el contacto** en la base de datos
-2. **Envía email de notificación** al administrador
-3. **Registra la fecha y hora** del contacto
-4. **Marca como no leído** por defecto
-
-### Email de Notificación
-```
-Asunto: Nuevo formulario de contacto - Juan Pérez
-
-Se ha recibido un nuevo formulario de contacto:
-
-**Información del Contacto:**
-- Nombre: Juan Pérez
-- Email: juan.perez@ejemplo.com
-- Teléfono: +1 (555) 123-4567
-- Fecha: 2025-08-06 02:30:00
-
-**Mensaje:**
-Hola, me gustaría obtener información sobre sus servicios de fiestas infantiles. ¿Podrían enviarme un catálogo de productos y precios?
-
----
-Este mensaje fue enviado automáticamente desde el formulario de contacto de KidsFun.
-```
-
----
-
-## 🔧 Configuración
-
-### Variables de Entorno
-```bash
-# Email Configuration
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-SMTP_USER=your-email@gmail.com
-SMTP_PASSWORD=your-app-password
-```
-
-### CORS Configuration
-```python
-# En app/config.py
-allowed_origins: List[str] = [
-    "http://localhost:4200",
-    "https://kidsfunyfiestasinfantiles.com",
-    "https://www.kidsfunyfiestasinfantiles.com",
-    "https://api.kidsfunyfiestasinfantiles.com"
-]
-```
-
----
-
-## 🚨 Códigos de Error
-
-### Códigos HTTP Comunes
-- `200` - OK - Request exitosa
-- `201` - Created - Contacto creado exitosamente
-- `400` - Bad Request - Datos inválidos
-- `401` - Unauthorized - Autenticación requerida
-- `422` - Unprocessable Entity - Error de validación
-- `500` - Internal Server Error - Error del servidor
-
-### Ejemplos de Respuestas de Error
+#### **Response Error (422)**
 ```json
 {
   "detail": [
@@ -749,18 +122,589 @@ allowed_origins: List[str] = [
 }
 ```
 
+#### **Ejemplo con cURL**
+```bash
+curl -X POST "https://api.kidsfunyfiestasinfantiles.com/api/contact/" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "first_name": "Juan",
+    "last_name": "Pérez",
+    "contact_number": "+1 (555) 123-4567",
+    "email": "juan.perez@ejemplo.com",
+    "reason": "Hola, me gustaría obtener información sobre sus servicios de fiestas infantiles."
+  }'
+```
+
+#### **Ejemplo con JavaScript**
+```javascript
+async function createContact(contactData) {
+  const response = await fetch('https://api.kidsfunyfiestasinfantiles.com/api/contact/', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(contactData)
+  });
+  
+  if (response.ok) {
+    return await response.json();
+  } else {
+    const error = await response.json();
+    throw new Error(error.detail);
+  }
+}
+
+// Uso
+const contactData = {
+  first_name: 'Juan',
+  last_name: 'Pérez',
+  contact_number: '+1 (555) 123-4567',
+  email: 'juan.perez@ejemplo.com',
+  reason: 'Hola, me gustaría obtener información sobre sus servicios.'
+};
+
+createContact(contactData)
+  .then(contact => console.log('Contacto creado:', contact))
+  .catch(error => console.error('Error:', error));
+```
+
 ---
 
-## 📞 Soporte
+### **2. Obtener Contactos - `GET /api/contact/`**
 
-### Recursos Útiles
-- **Documentación API**: https://api.kidsfunyfiestasinfantiles.com/docs
-- **Health Check**: https://api.kidsfunyfiestasinfantiles.com/health
-- **Issues**: https://github.com/mrgomezsv/kidsfun_back/issues
+Obtiene una lista de contactos (requiere autenticación).
 
-### Contacto
-- **Email**: soporte@kidsfunyfiestasinfantiles.com
+#### **URL**
+```
+GET https://api.kidsfunyfiestasinfantiles.com/api/contact/
+```
+
+#### **Headers**
+```http
+Authorization: Bearer {token}
+```
+
+#### **Parámetros de Query**
+| Parámetro | Tipo | Descripción | Default | Requerido |
+|-----------|------|-------------|---------|-----------|
+| `skip` | int | Número de contactos a saltar | 0 | ❌ |
+| `limit` | int | Número máximo de contactos (1-100) | 100 | ❌ |
+| `is_read` | boolean | Filtrar por estado de lectura | - | ❌ |
+| `is_responded` | boolean | Filtrar por estado de respuesta | - | ❌ |
+
+#### **Response Exitosa (200)**
+```json
+[
+  {
+    "id": 1,
+    "first_name": "Juan",
+    "last_name": "Pérez",
+    "contact_number": "+1 (555) 123-4567",
+    "email": "juan.perez@ejemplo.com",
+    "reason": "Hola, me gustaría obtener información sobre sus servicios de fiestas infantiles.",
+    "created_at": "2024-01-01T00:00:00Z",
+    "is_read": false,
+    "is_responded": false
+  },
+  {
+    "id": 2,
+    "first_name": "María",
+    "last_name": "García",
+    "contact_number": "+1 (555) 987-6543",
+    "email": "maria.garcia@ejemplo.com",
+    "reason": "Necesito información sobre precios para una fiesta de cumpleaños.",
+    "created_at": "2024-01-02T00:00:00Z",
+    "is_read": true,
+    "is_responded": true
+  }
+]
+```
+
+#### **Ejemplo con cURL**
+```bash
+# Obtener todos los contactos
+curl -X GET "https://api.kidsfunyfiestasinfantiles.com/api/contact/" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+
+# Obtener contactos no leídos
+curl -X GET "https://api.kidsfunyfiestasinfantiles.com/api/contact/?is_read=false" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+
+# Obtener contactos con paginación
+curl -X GET "https://api.kidsfunyfiestasinfantiles.com/api/contact/?skip=0&limit=10" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
 
 ---
 
-**¡Listo para usar la API de Contacto! 🎉** 
+### **3. Obtener Contacto por ID - `GET /api/contact/{contact_id}`**
+
+Obtiene un contacto específico por su ID (requiere autenticación).
+
+#### **URL**
+```
+GET https://api.kidsfunyfiestasinfantiles.com/api/contact/{contact_id}
+```
+
+#### **Headers**
+```http
+Authorization: Bearer {token}
+```
+
+#### **Parámetros de Path**
+| Parámetro | Tipo | Descripción |
+|-----------|------|-------------|
+| `contact_id` | int | ID del contacto |
+
+#### **Response Exitosa (200)**
+```json
+{
+  "id": 1,
+  "first_name": "Juan",
+  "last_name": "Pérez",
+  "contact_number": "+1 (555) 123-4567",
+  "email": "juan.perez@ejemplo.com",
+  "reason": "Hola, me gustaría obtener información sobre sus servicios de fiestas infantiles.",
+  "created_at": "2024-01-01T00:00:00Z",
+  "is_read": false,
+  "is_responded": false
+}
+```
+
+#### **Response Error (404)**
+```json
+{
+  "detail": "Contact not found"
+}
+```
+
+#### **Ejemplo con cURL**
+```bash
+curl -X GET "https://api.kidsfunyfiestasinfantiles.com/api/contact/1" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+---
+
+### **4. Actualizar Contacto - `PUT /api/contact/{contact_id}`**
+
+Actualiza un contacto existente (requiere autenticación).
+
+#### **URL**
+```
+PUT https://api.kidsfunyfiestasinfantiles.com/api/contact/{contact_id}
+```
+
+#### **Headers**
+```http
+Authorization: Bearer {token}
+Content-Type: application/json
+```
+
+#### **Body**
+```json
+{
+  "is_read": true,
+  "is_responded": true
+}
+```
+
+#### **Response Exitosa (200)**
+```json
+{
+  "id": 1,
+  "first_name": "Juan",
+  "last_name": "Pérez",
+  "contact_number": "+1 (555) 123-4567",
+  "email": "juan.perez@ejemplo.com",
+  "reason": "Hola, me gustaría obtener información sobre sus servicios de fiestas infantiles.",
+  "created_at": "2024-01-01T00:00:00Z",
+  "is_read": true,
+  "is_responded": true
+}
+```
+
+#### **Ejemplo con cURL**
+```bash
+curl -X PUT "https://api.kidsfunyfiestasinfantiles.com/api/contact/1" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "is_read": true,
+    "is_responded": true
+  }'
+```
+
+---
+
+### **5. Eliminar Contacto - `DELETE /api/contact/{contact_id}`**
+
+Elimina un contacto (requiere autenticación).
+
+#### **URL**
+```
+DELETE https://api.kidsfunyfiestasinfantiles.com/api/contact/{contact_id}
+```
+
+#### **Headers**
+```http
+Authorization: Bearer {token}
+```
+
+#### **Response Exitosa (204)**
+```
+No Content
+```
+
+#### **Ejemplo con cURL**
+```bash
+curl -X DELETE "https://api.kidsfunyfiestasinfantiles.com/api/contact/1" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+---
+
+### **6. Obtener Estadísticas - `GET /api/contact/stats/summary`**
+
+Obtiene estadísticas resumidas de contactos (requiere autenticación).
+
+#### **URL**
+```
+GET https://api.kidsfunyfiestasinfantiles.com/api/contact/stats/summary
+```
+
+#### **Headers**
+```http
+Authorization: Bearer {token}
+```
+
+#### **Response Exitosa (200)**
+```json
+{
+  "total_contacts": 150,
+  "unread_contacts": 25,
+  "unresponded_contacts": 30,
+  "contacts_this_month": 45,
+  "contacts_this_week": 12,
+  "average_response_time": "2.5 days"
+}
+```
+
+#### **Ejemplo con cURL**
+```bash
+curl -X GET "https://api.kidsfunyfiestasinfantiles.com/api/contact/stats/summary" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+---
+
+## 📧 **Sistema de Notificaciones por Email**
+
+### **Configuración Automática**
+
+Cuando se recibe un formulario de contacto, el sistema automáticamente:
+
+1. **Guarda el contacto** en la base de datos
+2. **Envía email de notificación** al equipo
+3. **Registra el estado** del envío
+
+### **Formato del Email**
+
+```
+Asunto: Nuevo formulario de contacto - {nombre} {apellido}
+
+Se ha recibido un nuevo formulario de contacto:
+
+**Información del Contacto:**
+- Nombre: {nombre} {apellido}
+- Email: {email}
+- Teléfono: {teléfono}
+- Fecha: {fecha}
+
+**Mensaje:**
+{mensaje}
+
+---
+Este mensaje fue enviado automáticamente desde el formulario de contacto de KidsFun.
+```
+
+---
+
+## 🧪 **Testing**
+
+### **1. Testing con cURL**
+
+#### **Crear Contacto**
+```bash
+curl -X POST "https://api.kidsfunyfiestasinfantiles.com/api/contact/" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "first_name": "Test",
+    "last_name": "User",
+    "contact_number": "+1 (555) 123-4567",
+    "email": "test@ejemplo.com",
+    "reason": "Test contact message"
+  }'
+```
+
+#### **Obtener Contactos**
+```bash
+curl -X GET "https://api.kidsfunyfiestasinfantiles.com/api/contact/" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+#### **Actualizar Contacto**
+```bash
+curl -X PUT "https://api.kidsfunyfiestasinfantiles.com/api/contact/1" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "is_read": true,
+    "is_responded": true
+  }'
+```
+
+#### **Obtener Estadísticas**
+```bash
+curl -X GET "https://api.kidsfunyfiestasinfantiles.com/api/contact/stats/summary" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+### **2. Testing con JavaScript**
+
+```javascript
+class ContactAPI {
+  constructor(baseURL = 'https://api.kidsfunyfiestasinfantiles.com') {
+    this.baseURL = baseURL;
+  }
+
+  async createContact(contactData) {
+    const response = await fetch(`${this.baseURL}/api/contact/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(contactData)
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    return await response.json();
+  }
+
+  async getContacts(token, filters = {}) {
+    const params = new URLSearchParams(filters);
+    const response = await fetch(`${this.baseURL}/api/contact/?${params}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    return await response.json();
+  }
+
+  async getContact(id, token) {
+    const response = await fetch(`${this.baseURL}/api/contact/${id}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    return await response.json();
+  }
+
+  async updateContact(id, contactData, token) {
+    const response = await fetch(`${this.baseURL}/api/contact/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(contactData)
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    return await response.json();
+  }
+
+  async deleteContact(id, token) {
+    const response = await fetch(`${this.baseURL}/api/contact/${id}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+  }
+
+  async getStats(token) {
+    const response = await fetch(`${this.baseURL}/api/contact/stats/summary`, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    return await response.json();
+  }
+}
+
+// Uso
+const contactAPI = new ContactAPI();
+
+// Crear contacto
+contactAPI.createContact({
+  first_name: 'Test',
+  last_name: 'User',
+  contact_number: '+1 (555) 123-4567',
+  email: 'test@ejemplo.com',
+  reason: 'Test contact message'
+})
+  .then(contact => console.log('Contacto creado:', contact))
+  .catch(error => console.error('Error:', error));
+
+// Obtener contactos
+contactAPI.getContacts('YOUR_TOKEN', { is_read: false })
+  .then(contacts => console.log('Contactos:', contacts))
+  .catch(error => console.error('Error:', error));
+```
+
+---
+
+## 🚨 **Solución de Problemas**
+
+### **Problemas Comunes**
+
+#### **1. Error 422 - "Validation error"**
+```bash
+# Verificar que todos los campos requeridos están presentes
+# Campos requeridos: first_name, last_name, contact_number, email, reason
+# Verificar que el email tiene formato válido
+```
+
+#### **2. Error 401 - "Not authenticated"**
+```bash
+# Verificar que el token es válido para endpoints protegidos
+curl -X GET "https://api.kidsfunyfiestasinfantiles.com/api/auth/me" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+#### **3. Error 404 - "Contact not found"**
+```bash
+# Verificar que el contacto existe
+curl -X GET "https://api.kidsfunyfiestasinfantiles.com/api/contact/999" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+### **Comandos de Diagnóstico**
+
+#### **Verificar Contactos en Base de Datos**
+```sql
+-- Ver todos los contactos
+SELECT id, first_name, last_name, email, created_at, is_read, is_responded 
+FROM t_app_contact;
+
+-- Ver contactos no leídos
+SELECT id, first_name, last_name, email, created_at 
+FROM t_app_contact 
+WHERE is_read = false;
+
+-- Ver contactos no respondidos
+SELECT id, first_name, last_name, email, created_at 
+FROM t_app_contact 
+WHERE is_responded = false;
+```
+
+---
+
+## 📊 **Métricas y Monitoreo**
+
+### **Endpoints de Monitoreo**
+
+#### **Health Check**
+```bash
+curl -I https://api.kidsfunyfiestasinfantiles.com/health
+```
+
+#### **Estadísticas de Contactos**
+```sql
+-- Total de contactos
+SELECT COUNT(*) as total_contacts FROM t_app_contact;
+
+-- Contactos por estado
+SELECT is_read, is_responded, COUNT(*) as contact_count 
+FROM t_app_contact 
+GROUP BY is_read, is_responded;
+
+-- Contactos por mes
+SELECT 
+  DATE_TRUNC('month', created_at) as month,
+  COUNT(*) as contact_count
+FROM t_app_contact 
+GROUP BY month 
+ORDER BY month DESC;
+```
+
+---
+
+## 🎯 **Próximos Pasos**
+
+### **Mejoras Sugeridas**
+
+1. **📧 Notificaciones Avanzadas**
+   - Notificaciones push
+   - Emails personalizados
+   - Plantillas de respuesta
+
+2. **📊 Analytics**
+   - Métricas de engagement
+   - Reportes de contactos
+   - Análisis de tendencias
+
+3. **🤖 Automatización**
+   - Respuestas automáticas
+   - Clasificación de contactos
+   - Enrutamiento inteligente
+
+4. **📱 Integración**
+   - App móvil
+   - CRM integration
+   - Slack notifications
+
+---
+
+## 📞 **Soporte**
+
+### **Contacto**
+- **📧 Email:** soporte@kidsfunyfiestasinfantiles.com
+- **🔗 Documentación:** [API Documentation](./API_DOCUMENTATION.md)
+- **🌐 Health Check:** `https://api.kidsfunyfiestasinfantiles.com/health`
+
+### **Recursos Adicionales**
+- [API Documentation](./API_DOCUMENTATION.md)
+- [Developer Guide](./DEVELOPER_GUIDE.md)
+- [Postman Guide](./POSTMAN_GUIDE.md)
+- [Auth API Documentation](./AUTH_API_DOCUMENTATION.md)
+
+---
+
+**¡API de Contacto lista para usar! 📞** 
