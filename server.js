@@ -17,6 +17,7 @@ const eventRoutes = require('./routes/events');
 const waiverRoutes = require('./routes/waiver');
 const chatRoutes = require('./routes/chat');
 const contactRoutes = require('./routes/contact');
+const databaseRoutes = require('./routes/database');
 const { errorHandler } = require('./middleware/errorHandler');
 const { securityHeaders } = require('./middleware/securityHeaders');
 
@@ -49,6 +50,7 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 const corsOptions = {
   origin: [
     'http://localhost:4200',
+    'http://localhost:4201',
     'https://kidsfunyfiestasinfantiles.com',
     'https://www.kidsfunyfiestasinfantiles.com'
   ],
@@ -75,6 +77,7 @@ app.use('/api/events', eventRoutes);
 app.use('/api/waiver', waiverRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/contact', contactRoutes);
+app.use('/api/db', databaseRoutes);
 
 // Health check
 app.get('/health', (req, res) => {
