@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 import os
 from app.config import settings
-from app.routers import products, users, likes, commentaries, events, auth, waiver, chat
+from app.routers import products, users, likes, commentaries, events, auth, waiver, chat, contact
 from app.middleware import add_security_middleware, add_security_headers
 
 # Create FastAPI app
@@ -40,6 +40,7 @@ app.include_router(commentaries.router, prefix="/api/commentaries", tags=["Comme
 app.include_router(events.router, prefix="/api/events", tags=["Events"])
 app.include_router(waiver.router, prefix="/api/waiver", tags=["Waiver"])
 app.include_router(chat.router, prefix="/api/chat", tags=["Chat"])
+app.include_router(contact.router, prefix="/api/contact", tags=["Contact"])
 
 @app.get("/")
 async def root():

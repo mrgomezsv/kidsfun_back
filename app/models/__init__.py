@@ -1,21 +1,22 @@
-from .product import Product
 from .user import User
-from .like import Like
+from .product import Product
 from .commentary import Commentary
+from .like import Like
 from .event import Event
+from .waiver import WaiverData, WaiverValidator
 from .chat import ChatRoom, ChatMessage, ChatAdministrator
-from .waiver import WaiverData, WaiverValidator, WaiverDataDB
+from .contact import Contact
 
 __all__ = [
-    "Product",
-    "User", 
-    "Like",
+    "User",
+    "Product", 
     "Commentary",
+    "Like",
     "Event",
+    "WaiverData",
+    "WaiverValidator",
     "ChatRoom",
     "ChatMessage", 
     "ChatAdministrator",
-    "WaiverData",
-    "WaiverValidator",
-    "WaiverDataDB"
+    "Contact"
 ] 

@@ -20,6 +20,7 @@ Sistema backend completo para la gestión de productos, usuarios, comentarios, l
 - [API Documentation](#api-documentation)
 - [Testing](#testing)
 - [Deployment](#deployment)
+- [🔄 Actualización del Servidor](#-actualización-del-servidor)
 - [Estructura del Proyecto](#estructura-del-proyecto)
 - [Contribución](#contribución)
 
@@ -143,197 +144,278 @@ RATE_LIMIT_PER_SECOND=10
 # Email (opcional)
 SMTP_SERVER=smtp.gmail.com
 SMTP_PORT=587
-SMTP_USERNAME=your-email@gmail.com
+SMTP_USER=your-email@gmail.com
 SMTP_PASSWORD=your-app-password
-```
-
-## 🚀 Uso
-
-### Desarrollo Local
-```bash
-# Activar entorno virtual
-source venv/bin/activate
-
-# Ejecutar servidor de desarrollo
-uvicorn main:app --reload --host 0.0.0.0 --port 8000
-```
-
-### Producción
-```bash
-# Usar Gunicorn
-gunicorn main:app -w 4 -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000
-```
-
-### Con Docker (opcional)
-```bash
-# Construir imagen
-docker build -t kidsfun-backend .
-
-# Ejecutar contenedor
-docker run -p 8000:8000 kidsfun-backend
-```
-
-## 📚 API Documentation
-
-### Documentación Interactiva
-- **Swagger UI**: https://api.kidsfunyfiestasinfantiles.com/docs
-- **ReDoc**: https://api.kidsfunyfiestasinfantiles.com/redoc
-
-### Documentación Completa
-- **[API Documentation](API_DOCUMENTATION.md)** - Guía completa para consumir las APIs
-- **[Developer Guide](DEVELOPER_GUIDE.md)** - Guía técnica para desarrolladores
-
-### Endpoints Principales
-
-#### Públicos
-- `GET /` - Información de la API
-- `GET /health` - Health check
-- `GET /security-info` - Información de seguridad
-- `GET /api/products/` - Listar productos
-- `GET /api/products/{id}` - Obtener producto específico
-- `GET /api/commentaries/` - Listar comentarios
-- `GET /api/events/` - Listar eventos
-
-#### Protegidos (Requieren Autenticación)
-- `POST /api/auth/login` - Login
-- `POST /api/auth/register` - Registro
-- `POST /api/products/` - Crear producto
-- `PUT /api/products/{id}` - Actualizar producto
-- `DELETE /api/products/{id}` - Eliminar producto
-- `POST /api/commentaries/` - Crear comentario
-- `GET /api/likes/` - Listar likes
-- `POST /api/likes/` - Crear like
-- `GET /api/users/` - Listar usuarios
-- `GET /api/waiver/` - Listar waivers
-- `POST /api/waiver/` - Crear waiver
-- `GET /api/chat/` - Listar salas de chat
-
-## 🧪 Testing
-
-### Tests Automatizados
-```bash
-# Ejecutar todos los tests
-python -m pytest
-
-# Tests con coverage
-python -m pytest --cov=app
-
-# Tests específicos
-python -m pytest tests/test_products.py
-```
-
-### Tests Manuales
-```bash
-# Test de todas las APIs
-python test_all_apis_smart.py
-
-# Obtener datos reales de todas las APIs
-python test_all_apis_with_data.py
-```
-
-### Ejemplo de Test
-```python
-import requests
-
-def test_get_products():
-    response = requests.get('https://api.kidsfunyfiestasinfantiles.com/api/products/')
-    assert response.status_code == 200
-    products = response.json()
-    assert len(products) > 0
 ```
 
 ## 🚀 Deployment
 
-### Ubuntu Server (Recomendado)
+### Despliegue Automático (Recomendado)
 ```bash
-# Clonar en servidor
-git clone https://github.com/mrgomezsv/kidsfun_back.git /opt/kidsfun-backend
-
-# Configurar sistema
-sudo bash setup_server.sh
-
-# Deploy automático
-sudo bash deploy.sh
+# En el servidor Ubuntu (como root)
+cd /tmp
+wget https://raw.githubusercontent.com/mrgomezsv/kidsfun_back/mrg_prod/deploy_final.sh
+chmod +x deploy_final.sh
+sudo ./deploy_final.sh
 ```
 
-### Variables de Entorno de Producción
+### Despliegue Manual
 ```bash
-# .env.production
-DATABASE_URL=postgresql://mrgomez:password@localhost/smap_kf
-SECRET_KEY=production-secret-key
-DEBUG=False
-ALLOWED_ORIGINS=["https://kidsfunyfiestasinfantiles.com"]
+# Instalar dependencias
+sudo apt update && sudo apt upgrade -y
+sudo apt install -y python3 python3-pip python3-venv python3-dev
+sudo apt install -y nginx certbot python3-certbot-nginx
+sudo apt install -y git curl wget unzip postgresql-client logrotate
+
+# Crear usuario y directorio
+sudo useradd -m -s /bin/bash kidsfun
+sudo usermod -aG sudo kidsfun
+sudo mkdir -p /opt/kidsfun-backend
+sudo chown kidsfun:kidsfun /opt/kidsfun-backend
+
+# Clonar proyecto
+cd /opt/kidsfun-backend
+sudo -u kidsfun git clone -b mrg_prod https://github.com/mrgomezsv/kidsfun_back.git .
+
+# Configurar entorno
+sudo -u kidsfun ./setup_env.sh
+
+# Crear entorno virtual e instalar dependencias
+sudo -u kidsfun python3 -m venv venv
+sudo -u kidsfun bash -c "source venv/bin/activate && pip install -r requirements.txt"
+
+# Configurar servicios
+sudo cp kidsfun-backend.service /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable kidsfun-backend
+
+# Configurar Nginx
+sudo cp kidsfun-backend.nginx /etc/nginx/sites-available/kidsfun-backend
+sudo ln -sf /etc/nginx/sites-available/kidsfun-backend /etc/nginx/sites-enabled/
+sudo rm -f /etc/nginx/sites-enabled/default
+
+# Iniciar servicios
+sudo systemctl start nginx
+sudo systemctl start kidsfun-backend
+
+# Configurar SSL
+sudo certbot --nginx -d api.kidsfunyfiestasinfantiles.com --non-interactive --agree-tos --email admin@kidsfunyfiestasinfantiles.com
 ```
 
-### Systemd Service
-```ini
-[Unit]
-Description=KidsFun Backend API
-After=network.target
+## 🔄 Actualización del Servidor
 
-[Service]
-Type=notify
-User=www-data
-Group=www-data
-WorkingDirectory=/opt/kidsfun-backend
-Environment=PATH=/opt/kidsfun-backend/venv/bin
-ExecStart=/opt/kidsfun-backend/venv/bin/gunicorn main:app -w 4 -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000
-Restart=always
+### 🎯 Actualización Automática (RECOMENDADO)
 
-[Install]
-WantedBy=multi-user.target
+#### Opción 1: Comando Global
+```bash
+# En el servidor (como root)
+sudo update-kidsfun
+```
+
+#### Opción 2: Script Principal
+```bash
+# En el servidor (desde /opt/kidsfun-backend)
+cd /opt/kidsfun-backend
+chmod +x update.sh
+sudo ./update.sh
+```
+
+#### Opción 3: Script de Seguridad
+```bash
+# En el servidor (desde /opt/kidsfun-backend)
+cd /opt/kidsfun-backend
+sudo ./update_security.sh
+```
+
+### 📋 Lo que hace la actualización automática:
+
+1. **📁 Backup automático** - Guarda configuración actual
+2. **📥 Git pull** - Obtiene últimos cambios del repositorio
+3. **🐍 Dependencias** - Instala/actualiza Python packages
+4. **🔧 Migraciones** - Aplica cambios de base de datos (sin perder datos)
+5. **🔄 Servicios** - Reinicia kidsfun-backend y nginx
+6. **✅ Verificación** - Health checks y endpoints
+7. **🧹 Limpieza** - Elimina backups antiguos
+
+### 🚨 Solución de problemas comunes:
+
+#### Problema: Permisos denegados
+```bash
+# Dar permisos de ejecución
+cd /opt/kidsfun-backend
+chmod +x update.sh
+sudo ./update.sh
+```
+
+#### Problema: Servicio no inicia
+```bash
+# Verificar logs
+sudo journalctl -u kidsfun-backend -f
+
+# Reiniciar manualmente
+sudo systemctl restart kidsfun-backend
+sudo systemctl restart nginx
+```
+
+#### Problema: Base de datos
+```bash
+# Verificar conexión
+cd /opt/kidsfun-backend
+source venv/bin/activate
+python -c "from app.database import engine; print('DB OK')"
+```
+
+### ✅ Verificación después de la actualización:
+
+```bash
+# Verificar estado del servicio
+sudo systemctl status kidsfun-backend
+
+# Verificar que la API funciona
+curl https://api.kidsfunyfiestasinfantiles.com/health
+
+# Verificar que los datos se devuelven correctamente
+curl -s "https://api.kidsfunyfiestasinfantiles.com/api/products/26" | jq '.price'
+```
+
+### 🎉 Resultado esperado:
+
+```
+🎉 ¡Actualización AUTOMÁTICA completada exitosamente!
+==================================================
+✅ Proyecto actualizado automáticamente a la última versión
+✅ Dependencias actualizadas automáticamente
+✅ Migraciones aplicadas automáticamente
+✅ Servicios reiniciados automáticamente
+✅ Endpoints verificados automáticamente
+✅ Backups creados y limpiados automáticamente
+```
+
+### 📊 Comandos útiles:
+
+```bash
+# Ver logs en tiempo real
+sudo journalctl -u kidsfun-backend -f
+
+# Ver estado del servicio
+sudo systemctl status kidsfun-backend
+
+# Health check
+curl https://api.kidsfunyfiestasinfantiles.com/health
+
+# Security info
+curl https://api.kidsfunyfiestasinfantiles.com/security-info
+```
+
+## 🎪 Uso
+
+### Iniciar el Servidor
+```bash
+# Desarrollo
+uvicorn main:app --reload
+
+# Producción
+gunicorn main:app -w 4 -k uvicorn.workers.UvicornWorker
+```
+
+### Acceder a la Documentación
+- **Swagger UI**: http://localhost:8000/docs
+- **ReDoc**: http://localhost:8000/redoc
+
+### Endpoints Principales
+- **Health Check**: `GET /health`
+- **Productos**: `GET /api/products/`
+- **Usuarios**: `GET /api/users/`
+- **Autenticación**: `POST /api/auth/login`
+
+## 📚 API Documentation
+
+### Documentación Completa
+- **[API Documentation](API_DOCUMENTATION.md)** - Guía completa de endpoints
+- **[Developer Guide](DEVELOPER_GUIDE.md)** - Guía técnica para desarrolladores
+
+### Endpoints Principales
+- **Productos**: Gestión completa de productos con imágenes
+- **Usuarios**: Sistema de usuarios y autenticación
+- **Comentarios**: Sistema social de comentarios
+- **Likes**: Sistema de favoritos
+- **Eventos**: Gestión de eventos
+- **Waivers**: Sistema de permisos con QR
+- **Chat**: Sistema de chat en tiempo real
+
+## 🧪 Testing
+
+### Tests Automáticos
+```bash
+# Ejecutar todos los tests
+python -m pytest
+
+# Tests específicos
+python test_all_apis_smart.py
+python test_all_apis_with_data.py
+python test_security.py
+```
+
+### Verificación Manual
+```bash
+# Health check
+curl https://api.kidsfunyfiestasinfantiles.com/health
+
+# Verificar productos
+curl https://api.kidsfunyfiestasinfantiles.com/api/products/
+
+# Verificar seguridad
+curl https://api.kidsfunyfiestasinfantiles.com/security-info
 ```
 
 ## 📁 Estructura del Proyecto
 
 ```
 kidsfun_back/
-├── alembic/                 # Migraciones de base de datos
-├── app/
-│   ├── models/             # Modelos SQLAlchemy
+├── app/                    # Aplicación principal
+│   ├── models/            # Modelos SQLAlchemy
+│   │   ├── product.py     # Modelo de productos
+│   │   ├── user.py        # Modelo de usuarios
+│   │   ├── commentary.py  # Modelo de comentarios
+│   │   ├── like.py        # Modelo de likes
+│   │   ├── event.py       # Modelo de eventos
+│   │   ├── waiver.py      # Modelo de waivers
+│   │   └── chat.py        # Modelo de chat
+│   ├── routers/           # Endpoints de la API
 │   │   ├── __init__.py
-│   │   ├── product.py      # Modelo de productos
-│   │   ├── user.py         # Modelo de usuarios
-│   │   ├── commentary.py   # Modelo de comentarios
-│   │   ├── like.py         # Modelo de likes
-│   │   ├── event.py        # Modelo de eventos
-│   │   ├── waiver.py       # Modelo de waivers
-│   │   └── chat.py         # Modelo de chat
-│   ├── routers/            # Endpoints de la API
-│   │   ├── __init__.py
-│   │   ├── auth.py         # Autenticación
-│   │   ├── products.py     # Productos
-│   │   ├── users.py        # Usuarios
+│   │   ├── auth.py        # Autenticación
+│   │   ├── products.py    # Productos
+│   │   ├── users.py       # Usuarios
 │   │   ├── commentaries.py # Comentarios
-│   │   ├── likes.py        # Likes
-│   │   ├── events.py       # Eventos
-│   │   ├── waiver.py       # Waivers
-│   │   └── chat.py         # Chat
-│   ├── schemas/            # Esquemas Pydantic
+│   │   ├── likes.py       # Likes
+│   │   ├── events.py      # Eventos
+│   │   ├── waiver.py      # Waivers
+│   │   └── chat.py        # Chat
+│   ├── schemas/           # Esquemas Pydantic
 │   │   ├── __init__.py
-│   │   ├── product.py      # Esquemas de productos
-│   │   ├── user.py         # Esquemas de usuarios
-│   │   ├── commentary.py   # Esquemas de comentarios
-│   │   ├── like.py         # Esquemas de likes
-│   │   ├── event.py        # Esquemas de eventos
-│   │   ├── waiver.py       # Esquemas de waivers
-│   │   └── chat.py         # Esquemas de chat
-│   ├── utils/              # Utilidades
+│   │   ├── product.py     # Esquemas de productos
+│   │   ├── user.py        # Esquemas de usuarios
+│   │   ├── commentary.py  # Esquemas de comentarios
+│   │   ├── like.py        # Esquemas de likes
+│   │   ├── event.py       # Esquemas de eventos
+│   │   ├── waiver.py      # Esquemas de waivers
+│   │   └── chat.py        # Esquemas de chat
+│   ├── utils/             # Utilidades
 │   │   ├── __init__.py
-│   │   ├── email.py        # Envío de emails
-│   │   └── pdf.py          # Generación de PDFs
+│   │   ├── email.py       # Envío de emails
+│   │   └── pdf.py         # Generación de PDFs
 │   ├── __init__.py
-│   ├── config.py           # Configuración
-│   └── database.py         # Conexión a base de datos
-├── logs/                   # Logs de la aplicación
-├── alembic.ini            # Configuración de Alembic
-├── main.py                # Punto de entrada
-├── requirements.txt       # Dependencias
-├── API_DOCUMENTATION.md   # Documentación de la API
-├── DEVELOPER_GUIDE.md     # Guía para desarrolladores
+│   ├── config.py          # Configuración
+│   └── database.py        # Conexión a base de datos
+├── logs/                  # Logs de la aplicación
+├── alembic.ini           # Configuración de Alembic
+├── main.py               # Punto de entrada
+├── requirements.txt      # Dependencias
+├── API_DOCUMENTATION.md  # Documentación de la API
+├── DEVELOPER_GUIDE.md    # Guía para desarrolladores
 ├── test_all_apis_smart.py # Tests inteligentes
 ├── test_all_apis_with_data.py # Tests con datos reales
-└── README.md              # Este archivo
+└── README.md             # Este archivo
 ```
 
 ## 📊 Estado Actual del Sistema

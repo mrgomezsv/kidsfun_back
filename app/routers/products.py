@@ -5,6 +5,7 @@ from typing import List, Optional
 import os
 import shutil
 from datetime import datetime
+from decimal import Decimal
 
 from ..database import get_db
 from ..models.product import Product
@@ -62,7 +63,7 @@ async def get_products(
             "id": product.id,
             "title": product.title,
             "description": product.description,
-            "price": product.price,
+            "price": Decimal(str(product.price)) if product.price else None,
             "category": product.category,
             "created": product.created,
             "publicated": product.publicated,
@@ -104,7 +105,7 @@ async def get_product(product_id: int, db: Session = Depends(get_db)):
         "id": product.id,
         "title": product.title,
         "description": product.description,
-        "price": product.price,
+        "price": Decimal(str(product.price)) if product.price else None,
         "category": product.category,
         "created": product.created,
         "publicated": product.publicated,
