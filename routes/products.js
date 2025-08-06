@@ -3,6 +3,7 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const { body, validationResult, query } = require('express-validator');
+const { Op } = require('sequelize');
 const Product = require('../models/Product');
 const User = require('../models/User');
 const Commentary = require('../models/Commentary');
@@ -103,15 +104,15 @@ router.get('/', optionalAuth, async (req, res) => {
     // Add price filters
     if (min_price || max_price) {
       whereClause.price = {};
-      if (min_price) whereClause.price.$gte = parseFloat(min_price);
-      if (max_price) whereClause.price.$lte = parseFloat(max_price);
+      if (min_price) whereClause.price[Op.gte] = parseFloat(min_price);
+      if (max_price) whereClause.price[Op.lte] = parseFloat(max_price);
     }
 
     // Add search filter
     if (search) {
-      whereClause.$or = [
-        { title: { $iLike: `%${search}%` } },
-        { description: { $iLike: `%${search}%` } }
+      whereClause[Op.or] = [
+        { title: { [Op.iLike]: `%${search}%` } },
+        { description: { [Op.iLike]: `%${search}%` } }
       ];
     }
 

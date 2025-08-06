@@ -23,6 +23,9 @@ const { securityHeaders } = require('./middleware/securityHeaders');
 const app = express();
 const PORT = process.env.PORT || 8000;
 
+// Trust proxy for rate limiting behind Nginx
+app.set('trust proxy', 1);
+
 // Rate limiting
 const limiter = rateLimit({
   windowMs: 1 * 60 * 1000, // 1 minute
