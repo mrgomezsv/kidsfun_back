@@ -1,514 +1,226 @@
-# 🎪 KidsFun Backend API
+# KidsFun Backend - Node.js/Express
 
-Sistema backend completo para la gestión de productos, usuarios, comentarios, likes, eventos, waivers y chat de KidsFun - Fiestas Infantiles.
+Backend API para el sistema de gestión de KidsFun construido con Node.js, Express y PostgreSQL.
 
-## 🚀 Estado del Proyecto
+## 🚀 Características
 
-![Status](https://img.shields.io/badge/Status-Production%20Ready-brightgreen)
-![Version](https://img.shields.io/badge/Version-1.0.0-blue)
-![Python](https://img.shields.io/badge/Python-3.12+-yellow)
-![FastAPI](https://img.shields.io/badge/FastAPI-0.104+-green)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15+-blue)
+- **Framework**: Express.js
+- **Base de datos**: PostgreSQL con Sequelize ORM
+- **Autenticación**: JWT (JSON Web Tokens)
+- **Validación**: Express-validator
+- **Seguridad**: Helmet, CORS, Rate limiting
+- **Archivos**: Multer para upload de imágenes
+- **Logging**: Morgan y Winston
+- **Compresión**: Gzip compression
 
-## 📋 Índice
+## 📋 Requisitos
 
-- [Características](#características)
-- [Tecnologías](#tecnologías)
-- [Instalación](#instalación)
-- [Configuración](#configuración)
-- [Uso](#uso)
-- [API Documentation](#api-documentation)
-- [Testing](#testing)
-- [Deployment](#deployment)
-- [🔄 Actualización del Servidor](#-actualización-del-servidor)
-- [Estructura del Proyecto](#estructura-del-proyecto)
-- [Contribución](#contribución)
+- Node.js >= 18.0.0
+- PostgreSQL >= 12.0
+- npm o yarn
 
-## ✨ Características
+## 🛠️ Instalación
 
-### 🔐 Autenticación y Seguridad
-- **JWT Authentication** con tokens de acceso y renovación
-- **Rate Limiting** (10 requests/segundo por IP)
-- **CORS** configurado para dominios específicos
-- **SSL Required** - HTTPS obligatorio
-- **Input Validation** - Protección contra XSS y SQL injection
-- **Security Headers** - HSTS, CSP, X-Frame-Options
-
-### 🎪 Gestión de Productos
-- **CRUD Completo** - Create, Read, Update, Delete
-- **Filtros Avanzados** - Por categoría, búsqueda, estado
-- **Múltiples Imágenes** - Hasta 5 imágenes por producto
-- **YouTube Integration** - URLs de videos
-- **Paginación** - Limit y offset
-- **Relaciones** - Con likes y comentarios
-
-### 💬 Sistema Social
-- **Comentarios** - Sistema de comentarios por producto
-- **Likes** - Sistema de favoritos
-- **Usuarios** - Gestión completa de usuarios
-- **Chat** - Sistema de chat en tiempo real
-
-### 📅 Eventos y Waivers
-- **Eventos** - Gestión de eventos
-- **Waivers** - Sistema de permisos con QR codes
-- **PDF Generation** - Generación automática de documentos
-
-### 📊 Monitoreo y Logs
-- **Request Logging** - Logs detallados de todas las requests
-- **Error Tracking** - Captura y registro de errores
-- **Health Checks** - Endpoints de monitoreo
-- **Analytics** - Seguimiento de uso
-
-## 🛠️ Tecnologías
-
-### Backend
-- **FastAPI** - Framework web moderno y rápido
-- **SQLAlchemy** - ORM para PostgreSQL
-- **PostgreSQL** - Base de datos principal
-- **Alembic** - Migraciones de base de datos
-- **Pydantic** - Validación de datos y serialización
-- **JWT** - Autenticación con tokens
-- **Gunicorn** - Servidor WSGI para producción
-
-### Seguridad
-- **bcrypt** - Hash de contraseñas
-- **python-multipart** - Manejo de archivos
-- **python-jose** - JWT tokens
-- **passlib** - Utilidades de contraseñas
-
-### Utilidades
-- **requests** - Cliente HTTP
-- **python-dotenv** - Variables de entorno
-- **email-validator** - Validación de emails
-- **Pillow** - Procesamiento de imágenes
-
-## 📦 Instalación
-
-### Prerrequisitos
-- Python 3.12+
-- PostgreSQL 15+
-- Git
-
-### 1. Clonar el Repositorio
+1. **Clonar el repositorio**
 ```bash
-git clone https://github.com/mrgomezsv/kidsfun_back.git
 cd kidsfun_back
 ```
 
-### 2. Crear Entorno Virtual
+2. **Instalar dependencias**
 ```bash
-python -m venv venv
-source venv/bin/activate  # Linux/Mac
-# o
-venv\Scripts\activate     # Windows
+npm install
 ```
 
-### 3. Instalar Dependencias
-```bash
-pip install -r requirements.txt
-```
-
-### 4. Configurar Variables de Entorno
+3. **Configurar variables de entorno**
 ```bash
 cp env.example .env
 # Editar .env con tus configuraciones
 ```
 
-### 5. Configurar Base de Datos
+4. **Configurar la base de datos**
 ```bash
 # Crear base de datos PostgreSQL
-createdb smap_kf
+createdb kidsfun
 
 # Ejecutar migraciones
-alembic upgrade head
+npm run migrate
 ```
 
-## ⚙️ Configuración
-
-### Variables de Entorno (.env)
+5. **Iniciar el servidor**
 ```bash
-# Base de Datos
-DATABASE_URL=postgresql://user:password@localhost/smap_kf
+# Desarrollo
+npm run dev
 
-# JWT
-SECRET_KEY=your-secret-key-here
+# Producción
+npm start
+```
+
+## 🔧 Configuración
+
+### Variables de entorno (.env)
+
+```env
+# Database Configuration
+DATABASE_URL=postgresql://username:password@localhost:5432/kidsfun
+
+# JWT Configuration
+SECRET_KEY=your-secret-key-change-in-production
 ALGORITHM=HS256
 ACCESS_TOKEN_EXPIRE_MINUTES=30
 
-# CORS
-ALLOWED_ORIGINS=["http://localhost:4200", "https://kidsfunyfiestasinfantiles.com"]
+# Server Configuration
+PORT=8000
+HOST=0.0.0.0
+NODE_ENV=development
 
-# Rate Limiting
-RATE_LIMIT_PER_SECOND=10
+# File Upload Configuration
+UPLOAD_DIR=media
+MAX_FILE_SIZE=10485760
 
-# Email (opcional)
-SMTP_SERVER=smtp.gmail.com
+# Email Configuration (optional)
+SMTP_HOST=smtp.gmail.com
 SMTP_PORT=587
 SMTP_USER=your-email@gmail.com
 SMTP_PASSWORD=your-app-password
+SMTP_SECURE=false
 ```
 
-## 🚀 Deployment
+## 📚 API Endpoints
 
-### Despliegue Automático (Recomendado)
+### Autenticación
+- `POST /api/auth/login` - Iniciar sesión
+- `POST /api/auth/register` - Registrarse
+- `GET /api/auth/me` - Obtener usuario actual
+- `POST /api/auth/refresh` - Refrescar token
+
+### Usuarios
+- `GET /api/users` - Obtener todos los usuarios (admin)
+- `GET /api/users/:id` - Obtener usuario por ID
+- `PUT /api/users/:id` - Actualizar perfil
+- `PUT /api/users/:id/password` - Cambiar contraseña
+- `PUT /api/users/:id/status` - Actualizar estado (admin)
+
+### Productos
+- `GET /api/products` - Obtener productos
+- `GET /api/products/:id` - Obtener producto por ID
+- `POST /api/products` - Crear producto
+- `PUT /api/products/:id` - Actualizar producto
+- `DELETE /api/products/:id` - Eliminar producto
+
+### Likes
+- `GET /api/likes/product/:productId` - Obtener likes de un producto
+- `GET /api/likes/user/:userId` - Obtener likes de un usuario
+- `POST /api/likes/toggle/:productId` - Toggle like
+- `GET /api/likes/check/:productId` - Verificar si usuario dio like
+- `GET /api/likes/count/:productId` - Contar likes de un producto
+
+### Comentarios
+- `GET /api/commentaries/product/:productId` - Obtener comentarios de un producto
+- `GET /api/commentaries/user/:userId` - Obtener comentarios de un usuario
+- `POST /api/commentaries` - Crear comentario
+- `PUT /api/commentaries/:id` - Actualizar comentario
+- `DELETE /api/commentaries/:id` - Eliminar comentario
+- `GET /api/commentaries/:id` - Obtener comentario por ID
+
+### Otros
+- `GET /health` - Health check
+- `GET /security-info` - Información de seguridad
+
+## 🗄️ Estructura de la Base de Datos
+
+### Tablas principales
+
+1. **auth_user** - Usuarios del sistema
+2. **t_app_product_product** - Productos
+3. **commentaries** - Comentarios
+4. **likes** - Likes de productos
+
+## 🔒 Seguridad
+
+- **Rate limiting**: 10 requests por segundo por IP
+- **CORS**: Configurado para dominios específicos
+- **Helmet**: Headers de seguridad
+- **JWT**: Autenticación con tokens
+- **Validación**: Input validation con express-validator
+- **File upload**: Validación de tipos y tamaños
+
+## 🚀 Despliegue
+
+### Producción
+
+1. **Configurar variables de producción**
 ```bash
-# En el servidor Ubuntu (como root)
-cd /tmp
-wget https://raw.githubusercontent.com/mrgomezsv/kidsfun_back/mrg_prod/deploy_final.sh
-chmod +x deploy_final.sh
-sudo ./deploy_final.sh
+NODE_ENV=production
+DATABASE_URL=your-production-db-url
+SECRET_KEY=your-production-secret-key
 ```
 
-### Despliegue Manual
+2. **Instalar dependencias de producción**
 ```bash
-# Instalar dependencias
-sudo apt update && sudo apt upgrade -y
-sudo apt install -y python3 python3-pip python3-venv python3-dev
-sudo apt install -y nginx certbot python3-certbot-nginx
-sudo apt install -y git curl wget unzip postgresql-client logrotate
-
-# Crear usuario y directorio
-sudo useradd -m -s /bin/bash kidsfun
-sudo usermod -aG sudo kidsfun
-sudo mkdir -p /opt/kidsfun-backend
-sudo chown kidsfun:kidsfun /opt/kidsfun-backend
-
-# Clonar proyecto
-cd /opt/kidsfun-backend
-sudo -u kidsfun git clone -b mrg_prod https://github.com/mrgomezsv/kidsfun_back.git .
-
-# Configurar entorno
-sudo -u kidsfun ./setup_env.sh
-
-# Crear entorno virtual e instalar dependencias
-sudo -u kidsfun python3 -m venv venv
-sudo -u kidsfun bash -c "source venv/bin/activate && pip install -r requirements.txt"
-
-# Configurar servicios
-sudo cp kidsfun-backend.service /etc/systemd/system/
-sudo systemctl daemon-reload
-sudo systemctl enable kidsfun-backend
-
-# Configurar Nginx
-sudo cp kidsfun-backend.nginx /etc/nginx/sites-available/kidsfun-backend
-sudo ln -sf /etc/nginx/sites-available/kidsfun-backend /etc/nginx/sites-enabled/
-sudo rm -f /etc/nginx/sites-enabled/default
-
-# Iniciar servicios
-sudo systemctl start nginx
-sudo systemctl start kidsfun-backend
-
-# Configurar SSL
-sudo certbot --nginx -d api.kidsfunyfiestasinfantiles.com --non-interactive --agree-tos --email admin@kidsfunyfiestasinfantiles.com
+npm ci --only=production
 ```
 
-## 🔄 Actualización del Servidor
-
-### 🎯 Actualización Automática (RECOMENDADO)
-
-#### Opción 1: Comando Global
+3. **Ejecutar migraciones**
 ```bash
-# En el servidor (como root)
-sudo update-kidsfun
+npm run migrate
 ```
 
-#### Opción 2: Script Principal
+4. **Iniciar servidor**
 ```bash
-# En el servidor (desde /opt/kidsfun-backend)
-cd /opt/kidsfun-backend
-chmod +x update.sh
-sudo ./update.sh
+npm start
 ```
 
-#### Opción 3: Script de Seguridad
-```bash
-# En el servidor (desde /opt/kidsfun-backend)
-cd /opt/kidsfun-backend
-sudo ./update_security.sh
-```
-
-### 📋 Lo que hace la actualización automática:
-
-1. **📁 Backup automático** - Guarda configuración actual
-2. **📥 Git pull** - Obtiene últimos cambios del repositorio
-3. **🐍 Dependencias** - Instala/actualiza Python packages
-4. **🔧 Migraciones** - Aplica cambios de base de datos (sin perder datos)
-5. **🔄 Servicios** - Reinicia kidsfun-backend y nginx
-6. **✅ Verificación** - Health checks y endpoints
-7. **🧹 Limpieza** - Elimina backups antiguos
-
-### 🚨 Solución de problemas comunes:
-
-#### Problema: Permisos denegados
-```bash
-# Dar permisos de ejecución
-cd /opt/kidsfun-backend
-chmod +x update.sh
-sudo ./update.sh
-```
-
-#### Problema: Servicio no inicia
-```bash
-# Verificar logs
-sudo journalctl -u kidsfun-backend -f
-
-# Reiniciar manualmente
-sudo systemctl restart kidsfun-backend
-sudo systemctl restart nginx
-```
-
-#### Problema: Base de datos
-```bash
-# Verificar conexión
-cd /opt/kidsfun-backend
-source venv/bin/activate
-python -c "from app.database import engine; print('DB OK')"
-```
-
-### ✅ Verificación después de la actualización:
+### Con PM2
 
 ```bash
-# Verificar estado del servicio
-sudo systemctl status kidsfun-backend
+# Instalar PM2
+npm install -g pm2
 
-# Verificar que la API funciona
-curl https://api.kidsfunyfiestasinfantiles.com/health
+# Iniciar aplicación
+pm2 start server.js --name kidsfun-backend
 
-# Verificar que los datos se devuelven correctamente
-curl -s "https://api.kidsfunyfiestasinfantiles.com/api/products/26" | jq '.price'
+# Configurar para iniciar con el sistema
+pm2 startup
+pm2 save
 ```
 
-### 🎉 Resultado esperado:
+### Con Docker
 
-```
-🎉 ¡Actualización AUTOMÁTICA completada exitosamente!
-==================================================
-✅ Proyecto actualizado automáticamente a la última versión
-✅ Dependencias actualizadas automáticamente
-✅ Migraciones aplicadas automáticamente
-✅ Servicios reiniciados automáticamente
-✅ Endpoints verificados automáticamente
-✅ Backups creados y limpiados automáticamente
-```
+```dockerfile
+FROM node:18-alpine
 
-### 📊 Comandos útiles:
+WORKDIR /app
 
-```bash
-# Ver logs en tiempo real
-sudo journalctl -u kidsfun-backend -f
+COPY package*.json ./
+RUN npm ci --only=production
 
-# Ver estado del servicio
-sudo systemctl status kidsfun-backend
+COPY . .
 
-# Health check
-curl https://api.kidsfunyfiestasinfantiles.com/health
+EXPOSE 8000
 
-# Security info
-curl https://api.kidsfunyfiestasinfantiles.com/security-info
+CMD ["npm", "start"]
 ```
 
-## 🎪 Uso
+## 📝 Scripts Disponibles
 
-### Iniciar el Servidor
-```bash
-# Desarrollo
-uvicorn main:app --reload
-
-# Producción
-gunicorn main:app -w 4 -k uvicorn.workers.UvicornWorker
-```
-
-### Acceder a la Documentación
-- **Swagger UI**: http://localhost:8000/docs
-- **ReDoc**: http://localhost:8000/redoc
-
-### Endpoints Principales
-- **Health Check**: `GET /health`
-- **Productos**: `GET /api/products/`
-- **Usuarios**: `GET /api/users/`
-- **Autenticación**: `POST /api/auth/login`
-
-## 📚 API Documentation
-
-### Documentación Completa
-- **[API Documentation](API_DOCUMENTATION.md)** - Guía completa de endpoints
-- **[Developer Guide](DEVELOPER_GUIDE.md)** - Guía técnica para desarrolladores
-
-### Endpoints Principales
-- **Productos**: Gestión completa de productos con imágenes
-- **Usuarios**: Sistema de usuarios y autenticación
-- **Comentarios**: Sistema social de comentarios
-- **Likes**: Sistema de favoritos
-- **Eventos**: Gestión de eventos
-- **Waivers**: Sistema de permisos con QR
-- **Chat**: Sistema de chat en tiempo real
-
-## 🧪 Testing
-
-### Tests Automáticos
-```bash
-# Ejecutar todos los tests
-python -m pytest
-
-# Tests específicos
-python test_all_apis_smart.py
-python test_all_apis_with_data.py
-python test_security.py
-```
-
-### Verificación Manual
-```bash
-# Health check
-curl https://api.kidsfunyfiestasinfantiles.com/health
-
-# Verificar productos
-curl https://api.kidsfunyfiestasinfantiles.com/api/products/
-
-# Verificar seguridad
-curl https://api.kidsfunyfiestasinfantiles.com/security-info
-```
-
-## 📁 Estructura del Proyecto
-
-```
-kidsfun_back/
-├── app/                    # Aplicación principal
-│   ├── models/            # Modelos SQLAlchemy
-│   │   ├── product.py     # Modelo de productos
-│   │   ├── user.py        # Modelo de usuarios
-│   │   ├── commentary.py  # Modelo de comentarios
-│   │   ├── like.py        # Modelo de likes
-│   │   ├── event.py       # Modelo de eventos
-│   │   ├── waiver.py      # Modelo de waivers
-│   │   └── chat.py        # Modelo de chat
-│   ├── routers/           # Endpoints de la API
-│   │   ├── __init__.py
-│   │   ├── auth.py        # Autenticación
-│   │   ├── products.py    # Productos
-│   │   ├── users.py       # Usuarios
-│   │   ├── commentaries.py # Comentarios
-│   │   ├── likes.py       # Likes
-│   │   ├── events.py      # Eventos
-│   │   ├── waiver.py      # Waivers
-│   │   └── chat.py        # Chat
-│   ├── schemas/           # Esquemas Pydantic
-│   │   ├── __init__.py
-│   │   ├── product.py     # Esquemas de productos
-│   │   ├── user.py        # Esquemas de usuarios
-│   │   ├── commentary.py  # Esquemas de comentarios
-│   │   ├── like.py        # Esquemas de likes
-│   │   ├── event.py       # Esquemas de eventos
-│   │   ├── waiver.py      # Esquemas de waivers
-│   │   └── chat.py        # Esquemas de chat
-│   ├── utils/             # Utilidades
-│   │   ├── __init__.py
-│   │   ├── email.py       # Envío de emails
-│   │   └── pdf.py         # Generación de PDFs
-│   ├── __init__.py
-│   ├── config.py          # Configuración
-│   └── database.py        # Conexión a base de datos
-├── logs/                  # Logs de la aplicación
-├── alembic.ini           # Configuración de Alembic
-├── main.py               # Punto de entrada
-├── requirements.txt      # Dependencias
-├── API_DOCUMENTATION.md  # Documentación de la API
-├── DEVELOPER_GUIDE.md    # Guía para desarrolladores
-├── test_all_apis_smart.py # Tests inteligentes
-├── test_all_apis_with_data.py # Tests con datos reales
-└── README.md             # Este archivo
-```
-
-## 📊 Estado Actual del Sistema
-
-### ✅ APIs Funcionando (100%)
-- **Productos**: 41 productos cargados y funcionando
-- **Comentarios**: 2 comentarios cargados
-- **Eventos**: Sistema listo (0 eventos actualmente)
-- **Usuarios**: Sistema protegido y funcional
-- **Likes**: Sistema protegido y funcional
-- **Waivers**: Sistema protegido y funcional
-- **Chat**: Sistema protegido y funcional
-
-### 🔧 Características Implementadas
-- ✅ Autenticación JWT completa
-- ✅ Rate limiting (10 req/seg)
-- ✅ CORS configurado
-- ✅ Validación de datos
-- ✅ Manejo de errores
-- ✅ Logs detallados
-- ✅ Health checks
-- ✅ Documentación interactiva
+- `npm start` - Iniciar servidor en producción
+- `npm run dev` - Iniciar servidor en desarrollo con nodemon
+- `npm run migrate` - Ejecutar migraciones de base de datos
+- `npm run seed` - Poblar base de datos con datos de ejemplo
+- `npm test` - Ejecutar tests
 
 ## 🤝 Contribución
 
-### Cómo Contribuir
 1. Fork el proyecto
-2. Crea una rama para tu feature (`git checkout -b feature/AmazingFeature`)
+2. Crear una rama para tu feature (`git checkout -b feature/AmazingFeature`)
 3. Commit tus cambios (`git commit -m 'Add some AmazingFeature'`)
 4. Push a la rama (`git push origin feature/AmazingFeature`)
-5. Abre un Pull Request
-
-### Estándares de Código
-- Usar **Black** para formateo de código
-- Seguir **PEP 8** para estilo de código
-- Documentar todas las funciones
-- Escribir tests para nuevas funcionalidades
-
-### Reportar Bugs
-- Usar el sistema de Issues de GitHub
-- Incluir pasos para reproducir el bug
-- Adjuntar logs si es posible
-- Especificar versión del sistema
-
-## 📞 Soporte
-
-### Contacto
-- **Email**: soporte@kidsfunyfiestasinfantiles.com
-- **Documentación**: https://api.kidsfunyfiestasinfantiles.com/docs
-- **Issues**: https://github.com/mrgomezsv/kidsfun_back/issues
-
-### Recursos Útiles
-- **[API Documentation](API_DOCUMENTATION.md)** - Guía completa
-- **[Developer Guide](DEVELOPER_GUIDE.md)** - Guía técnica
-- **[Health Check](https://api.kidsfunyfiestasinfantiles.com/health)** - Estado del sistema
+5. Abrir un Pull Request
 
 ## 📄 Licencia
 
-Este proyecto está bajo la Licencia MIT. Ver el archivo `LICENSE` para más detalles.
+Este proyecto está bajo la Licencia MIT - ver el archivo [LICENSE](LICENSE) para detalles.
 
-## 🙏 Agradecimientos
+## 🆘 Soporte
 
-- **FastAPI** por el excelente framework
-- **SQLAlchemy** por el ORM robusto
-- **PostgreSQL** por la base de datos confiable
-- **Comunidad de Python** por las herramientas de calidad
-
----
-
-**¡Gracias por usar KidsFun Backend API! 🎉**
-
-*Última actualización: Agosto 2025*
-*Versión: 1.0.0* 
-
-ACTULIZACION MANUAL
-cd /opt/kidsfun-backend
-
-# Hacer backup de la configuración
-cp .env .env.backup.$(date +%Y%m%d_%H%M%S)
-
-# Obtener cambios
-sudo -u kidsfun git fetch origin
-sudo -u kidsfun git reset --hard origin/mrg_prod
-
-# Restaurar configuración
-cp .env.backup.* .env
-
-# Actualizar dependencias
-sudo -u kidsfun bash -c "source venv/bin/activate && pip install -r requirements.txt"
-
-# Ejecutar migraciones
-sudo -u kidsfun bash -c "source venv/bin/activate && alembic upgrade head"
-
-# Reiniciar servicios
-sudo systemctl restart kidsfun-backend
-sudo systemctl restart nginx
+Para soporte, email support@kidsfun.com o crear un issue en el repositorio. 
