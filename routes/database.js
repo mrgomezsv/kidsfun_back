@@ -168,7 +168,7 @@ const Comment = sequelize.define('Comment', {
     defaultValue: DataTypes.NOW
   }
 }, {
-  tableName: 't_app_product_commentary',
+  tableName: 't_app_commentary',
   timestamps: false
 });
 
@@ -192,7 +192,7 @@ const Like = sequelize.define('Like', {
     defaultValue: DataTypes.NOW
   }
 }, {
-  tableName: 't_app_product_like',
+  tableName: 't_app_like',
   timestamps: false
 });
 
