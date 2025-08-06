@@ -90,7 +90,7 @@ router.get('/', optionalAuth, async (req, res) => {
       search,
       min_price,
       max_price,
-      publicated = true
+      publicated = 'true'
     } = req.query;
 
     const offset = (page - 1) * limit;
