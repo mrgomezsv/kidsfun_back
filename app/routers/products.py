@@ -56,7 +56,7 @@ async def get_products(
     product_ids = [p.id for p in products]
     
     # Consulta optimizada para likes - obtener todos los likes de una vez
-    likes_subquery = db.query(
+    likes_query = db.query(
         Like.product,
         func.count(Like.id).label('likes_count')
     ).filter(
@@ -64,19 +64,21 @@ async def get_products(
             Like.product.in_([str(pid) for pid in product_ids]),
             Like.is_favorite == True
         )
-    ).group_by(Like.product).subquery()
+    ).group_by(Like.product)
+    
+    likes_results = likes_query.all()
+    likes_dict = {row.product: row.likes_count for row in likes_results}
     
     # Consulta optimizada para comentarios - obtener todos los comentarios de una vez
-    comments_subquery = db.query(
+    comments_query = db.query(
         Commentary.product_id,
         func.count(Commentary.id).label('comments_count')
     ).filter(
         Commentary.product_id.in_(product_ids)
-    ).group_by(Commentary.product_id).subquery()
+    ).group_by(Commentary.product_id)
     
-    # Crear diccionarios para lookup rápido
-    likes_dict = {row.product: row.likes_count for row in db.query(likes_subquery).all()}
-    comments_dict = {row.product_id: row.comments_count for row in db.query(comments_subquery).all()}
+    comments_results = comments_query.all()
+    comments_dict = {row.product_id: row.comments_count for row in comments_results}
     
     # Construir resultado
     result = []
