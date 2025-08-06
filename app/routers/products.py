@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Query
 from sqlalchemy.orm import Session
-from sqlalchemy import func
+from sqlalchemy import func, and_
 from typing import List, Optional
 import os
 import shutil
@@ -34,6 +34,7 @@ async def get_products(
     publicated: Optional[bool] = None,
     db: Session = Depends(get_db)
 ):
+    # Construir query base
     query = db.query(Product)
     
     if category:
@@ -45,20 +46,41 @@ async def get_products(
     if publicated is not None:
         query = query.filter(Product.publicated == publicated)
     
+    # Obtener productos con paginación
     products = query.offset(skip).limit(limit).all()
     
-    # Agregar conteos de likes y comentarios
+    if not products:
+        return []
+    
+    # Obtener IDs de productos para consultas optimizadas
+    product_ids = [p.id for p in products]
+    
+    # Consulta optimizada para likes - obtener todos los likes de una vez
+    likes_subquery = db.query(
+        Like.product,
+        func.count(Like.id).label('likes_count')
+    ).filter(
+        and_(
+            Like.product.in_([str(pid) for pid in product_ids]),
+            Like.is_favorite == True
+        )
+    ).group_by(Like.product).subquery()
+    
+    # Consulta optimizada para comentarios - obtener todos los comentarios de una vez
+    comments_subquery = db.query(
+        Commentary.product_id,
+        func.count(Commentary.id).label('comments_count')
+    ).filter(
+        Commentary.product_id.in_(product_ids)
+    ).group_by(Commentary.product_id).subquery()
+    
+    # Crear diccionarios para lookup rápido
+    likes_dict = {row.product: row.likes_count for row in db.query(likes_subquery).all()}
+    comments_dict = {row.product_id: row.comments_count for row in db.query(comments_subquery).all()}
+    
+    # Construir resultado
     result = []
     for product in products:
-        likes_count = db.query(Like).filter(
-            Like.product == str(product.id),
-            Like.is_favorite == True
-        ).count()
-        
-        comments_count = db.query(Commentary).filter(
-            Commentary.product_id == product.id
-        ).count()
-        
         product_dict = {
             "id": product.id,
             "title": product.title,
@@ -78,8 +100,8 @@ async def get_products(
             "dimensions": product.dimensions,
             "circuits": product.circuits,
             "space": product.space,
-            "likes_count": likes_count,
-            "comments_count": comments_count
+            "likes_count": likes_dict.get(str(product.id), 0),
+            "comments_count": comments_dict.get(product.id, 0)
         }
         result.append(product_dict)
     
@@ -87,19 +109,22 @@ async def get_products(
 
 @router.get("/{product_id}", response_model=ProductWithStats)
 async def get_product(product_id: int, db: Session = Depends(get_db)):
+    # Obtener producto con consulta optimizada
     product = db.query(Product).filter(Product.id == product_id).first()
     if product is None:
         raise HTTPException(status_code=404, detail="Product not found")
     
-    # Agregar conteos de likes y comentarios
-    likes_count = db.query(Like).filter(
-        Like.product == str(product.id),
-        Like.is_favorite == True
-    ).count()
+    # Consultas optimizadas para likes y comentarios
+    likes_count = db.query(func.count(Like.id)).filter(
+        and_(
+            Like.product == str(product.id),
+            Like.is_favorite == True
+        )
+    ).scalar() or 0
     
-    comments_count = db.query(Commentary).filter(
+    comments_count = db.query(func.count(Commentary.id)).filter(
         Commentary.product_id == product.id
-    ).count()
+    ).scalar() or 0
     
     product_dict = {
         "id": product.id,
