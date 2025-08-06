@@ -489,3 +489,26 @@ Este proyecto está bajo la Licencia MIT. Ver el archivo `LICENSE` para más det
 
 *Última actualización: Agosto 2025*
 *Versión: 1.0.0* 
+
+ACTULIZACION MANUAL
+cd /opt/kidsfun-backend
+
+# Hacer backup de la configuración
+cp .env .env.backup.$(date +%Y%m%d_%H%M%S)
+
+# Obtener cambios
+sudo -u kidsfun git fetch origin
+sudo -u kidsfun git reset --hard origin/mrg_prod
+
+# Restaurar configuración
+cp .env.backup.* .env
+
+# Actualizar dependencias
+sudo -u kidsfun bash -c "source venv/bin/activate && pip install -r requirements.txt"
+
+# Ejecutar migraciones
+sudo -u kidsfun bash -c "source venv/bin/activate && alembic upgrade head"
+
+# Reiniciar servicios
+sudo systemctl restart kidsfun-backend
+sudo systemctl restart nginx
